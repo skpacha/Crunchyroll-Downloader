@@ -16,7 +16,8 @@ This is a cute GUI application that lets you download anime episodes from Crunch
 ### Installation
 
 Download the latest exe installer from the [releases](https://github.com/Tenpi/Crunchyroll-Downloader-GUI/releases) tab. Don't forget to
-uninstall the app if you are going to update it (eventually I plan on integrating some auto-updating functionality).
+uninstall the app if you are going to update it (eventually I plan on integrating some auto-updating functionality). You may get a warning
+message along the lines of "running this app can harm your PC", but don't worry because it's safe.
 
 ### Bugs and Requests
 
