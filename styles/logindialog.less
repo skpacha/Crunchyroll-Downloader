@@ -1,0 +1,219 @@
+@import "../index.less";
+@import "./titlebar.less";
+
+.login-dialog {
+    position: fixed;
+    z-index: 700;
+    display: flex;
+    width: 100%;
+    height: 100%;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    padding-top: @title-bar-height;
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+.login-dialog-box {
+    margin-top: -100px;
+    width: 40%;
+    height: 50%;
+    border-radius: 10px;
+    background-color: #ff5e81;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.login-container {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 100%;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.login-input {
+    width: 100%;
+    height: 100%;
+    margin-left: 7px;
+    margin-right: 7px;
+}
+
+.login-text {
+    color: black;
+    margin-bottom: 8px;
+    cursor: text;
+    -webkit-user-select: text;
+    font-size: 20px;
+    font-family: "Maven Pro", sans-serif;
+    &::selection {
+        background-color: #ff7dc4;
+    }
+}
+
+.login-box {
+    margin-bottom: 8px;
+    width: 100%;
+    height: 25px;
+    border: none;
+    color: black;
+    font-size: 25px;
+    font-family: "Maven Pro", sans-serif;
+    &::selection {
+        background-color: #ff7dc4;
+    }
+}
+
+.show-password {
+    display: flex;
+    flex-direction: row;
+    margin-top: 4px;
+    align-items: center;
+}
+
+.login-checkbox {
+    filter: hue-rotate(130deg) brightness(1.8);
+    transform: scale(1.5);
+    margin-left: 3px;
+    margin-bottom: 6px;
+    margin-right: 15px;
+}
+
+.login-button-container {
+    display: flex;
+    flex-direction: row;
+    margin-top: 5px;
+    width: 100%;
+    justify-content: space-around;
+    margin-bottom: 10px;
+}
+
+.cancel-button {
+    border: none;
+    padding-top: 7px;
+    padding-bottom: 7px;
+    padding-left: 14px;
+    padding-right: 14px;
+    color: black;
+    font-size: 20px;
+    font-family: "Maven Pro", sans-serif;
+    background-color: #ff8c8c;
+    border: 3px solid black;
+    &:hover {
+        border: 3px solid white;
+        cursor: pointer;
+    }
+}
+
+.login-button {
+    border: none;
+    padding-top: 7px;
+    padding-bottom: 7px;
+    padding-left: 14px;
+    padding-right: 14px;
+    color: black;
+    font-size: 20px;
+    font-family: "Maven Pro", sans-serif;
+    background-color: #ff424b;
+    border: 3px solid black;
+    &:hover {
+        color: white;
+        border: 3px solid white;
+        cursor: pointer;
+    }
+}
+
+.login-error {
+    display: flex;
+    width: 100%;
+    justify-content: flex-start;
+    span {
+        color: #ff293b;
+        font-size: 16px;
+        margin-top: -15px;
+        margin-left: 4px;
+        margin-bottom: 6px;
+        font-family: "Maven Pro", sans-serif;
+    }
+}
+
+.ok-button {
+    border: none;
+    padding-top: 7px;
+    padding-bottom: 7px;
+    padding-left: 14px;
+    padding-right: 14px;
+    color: black;
+    font-size: 20px;
+    font-family: "Maven Pro", sans-serif;
+    background-color: #708bff;
+    border: 3px solid black;
+    &:hover {
+        color: white;
+        border: 3px solid white;
+        cursor: pointer;
+    }
+}
+
+.logout-button {
+    border: none;
+    padding-top: 7px;
+    padding-bottom: 7px;
+    padding-left: 14px;
+    padding-right: 14px;
+    color: black;
+    font-size: 20px;
+    font-family: "Maven Pro", sans-serif;
+    background-color: #ff3869;
+    border: 3px solid black;
+    &:hover {
+        color: white;
+        border: 3px solid white;
+        cursor: pointer;
+    }
+}
+
+.logout-dialog-box {
+    margin-top: -100px;
+    width: 40%;
+    height: 30%;
+    border-radius: 10px;
+    background-color: #ff4f66;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.logout-info {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.logout-text {
+    color: black;
+    font-size: 25px;
+    font-family: "Maven Pro", sans-serif;
+    cursor: text;
+    -webkit-user-select: text;
+    &::selection {
+        background-color: #ff7da8;
+    }
+}
+
+.logout-text-alt {
+    color: #ffaadc;
+    font-size: 30px;
+    font-family: "Maven Pro", sans-serif;
+    cursor: text;
+    -webkit-user-select: text;
+    &::selection {
+        background-color: #ff7da8;
+    }
+}

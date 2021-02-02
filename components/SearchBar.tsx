@@ -91,22 +91,27 @@ const SearchBar: React.FunctionComponent = (props) => {
         if (value === "480") setQuality("480")
     }
 
+    const enterSearch = (event: React.KeyboardEvent<HTMLElement>) => {
+        event.stopPropagation()
+        if (event.key === "Enter") search()
+    }
+
     return (
-        <section className="search-container">
+        <section className="search-container" onKeyDown={enterSearch}>
             <div className="search-location">
                 <div className="search-bar">
-                    <input className="search-box" type="search" ref={searchBoxRef} spellCheck="false" placeholder="Crunchyroll link or anime name..." onKeyPress={(event) => event.key === "Enter" ? search() : null}/>
+                    <input className="search-box" type="search" ref={searchBoxRef} spellCheck="false" placeholder="Crunchyroll link or anime name..." onKeyDown={enterSearch}/>
                     <button className="search-button" type="submit" id="submit" onClick={search}>
                         <img className="search-button-img" src={searchHover ? searchButtonHover : searchButton} onMouseEnter={() => setSearchHover(true)} onMouseLeave={() => setSearchHover(false)}/>
                     </button>
                 </div>
             </div>
             <ErrorMessage/>
-            <div className="download-location">
+            <div className="download-location" onKeyDown={enterSearch}>
                 <img className="download-location-img" width="25" height="25" src={folderHover ? folderButtonHover : folderButton} onMouseEnter={() => setFolderHover(true)} onMouseLeave={() => setFolderHover(false)} onClick={changeDirectory}/>
                 <p><span className="download-location-text">{directory}</span></p>
             </div>
-            <div className="dropdown-options">
+            <div className="dropdown-options" onKeyDown={enterSearch}>
                 <div>
                     <input className="dropdown-checkbox" type="checkbox" checked={language === "sub"} value="sub" onChange={processCheckbox}/>
                     <label className="dropdown-label" onClick={() => setLanguage("sub")}>sub</label>

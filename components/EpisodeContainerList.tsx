@@ -17,9 +17,6 @@ const EpisodeContainerList: React.FunctionComponent = (props) => {
                 return newState
             })
         })
-        return () => {
-            ipcRenderer.removeAllListeners("download-started")
-        }
     }, [])
 
     const removeContainer = (id: number) => {

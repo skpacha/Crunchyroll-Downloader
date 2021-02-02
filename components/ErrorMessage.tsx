@@ -9,9 +9,6 @@ const ErrorMessage: React.FunctionComponent = (props) => {
         ipcRenderer.on("download-error", (event, err) => {
             setError(err)
         })
-        return () => {
-            ipcRenderer.removeAllListeners("download-error")
-        }
     }, [])
 
     const getMessage = () => {

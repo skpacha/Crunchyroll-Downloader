@@ -65,11 +65,6 @@ const EpisodeContainer: React.FunctionComponent<EpisodeContainerProps> = (props:
             }
         })
         ipcRenderer.on("debug", (event, info) => console.log(info))
-        return () => {
-            ipcRenderer.removeAllListeners("download-progress")
-            ipcRenderer.removeAllListeners("download-ended")
-            ipcRenderer.removeAllListeners("debug")
-        }
     }, [])
 
     useEffect(() => {
@@ -88,6 +83,7 @@ const EpisodeContainer: React.FunctionComponent<EpisodeContainerProps> = (props:
     }
     
     const stopDownload = async () => {
+        if (progress < 0 || progress === 100) return
         const success = await ipcRenderer.invoke("stop-download", props.id)
         if (success) setStopped(true)
     }

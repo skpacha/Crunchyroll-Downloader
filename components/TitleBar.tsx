@@ -1,5 +1,5 @@
-import React, {useState} from "react"
-import {remote} from "electron"
+import React, {useState, useEffect} from "react"
+import {remote, ipcRenderer} from "electron"
 import reloadButton from "../assets/reloadButton.png"
 import starButton from "../assets/starButton.png"
 import minimizeButton from "../assets/minimizeButton.png"
@@ -10,7 +10,10 @@ import starButtonHover from "../assets/starButton-hover.png"
 import minimizeButtonHover from "../assets/minimizeButton-hover.png"
 import maximizeButtonHover from "../assets/maximizeButton-hover.png"
 import closeButtonHover from "../assets/closeButton-hover.png"
+import loginButton from "../assets/loginButton.png"
+import loginButtonHover from "../assets/loginButton-hover.png"
 import appIcon from "../assets/icon.png"
+import pack from "../package.json"
 import "../styles/titlebar.less"
 
 const TitleBar: React.FunctionComponent = (props) => {
@@ -19,6 +22,12 @@ const TitleBar: React.FunctionComponent = (props) => {
     let [hoverMax, setHoverMax] = useState(false)
     let [hoverReload, setHoverReload] = useState(false)
     let [hoverStar, setHoverStar] = useState(false)
+    let [hoverLogin, setHoverLogin] = useState(false)
+    
+    useEffect(() => {
+        ipcRenderer.invoke("check-for-updates", true)
+    }, [])
+
     const minimize = () => {
         remote.getCurrentWindow().minimize()
     }
@@ -34,11 +43,14 @@ const TitleBar: React.FunctionComponent = (props) => {
         remote.getCurrentWindow().close()
     }
     const star = () => {
-        remote.shell.openExternal("https://github.com/Tenpi/Crunchyroll-Downloader-GUI")
+        remote.shell.openExternal(pack.repository.url)
     }
     const reload = () => {
-        remote.app.relaunch()
-        remote.app.exit()
+        ipcRenderer.invoke("check-for-updates", false)
+    }
+
+    const login = () => {
+        ipcRenderer.invoke("login-dialog")
     }
 
     return (
@@ -46,9 +58,10 @@ const TitleBar: React.FunctionComponent = (props) => {
                 <div className="title-bar-drag-area">
                     <div className="title-container">
                         <img className="app-icon" height="22" width="22" src={appIcon}/>
-                        <p><span className="title">Crunchyroll Downloader GUI v{remote.app.getVersion()}</span></p>
+                        <p><span className="title">Crunchyroll Downloader GUI v{pack.version}</span></p>
                     </div>
                     <div className="title-bar-buttons">
+                    <img src={hoverLogin ? loginButtonHover : loginButton} height="20" width="20" className="title-bar-button" onClick={login} onMouseEnter={() => setHoverLogin(true)} onMouseLeave={() => setHoverLogin(false)}/>
                         <img src={hoverStar ? starButtonHover : starButton} height="20" width="20" className="title-bar-button star-button" onClick={star} onMouseEnter={() => setHoverStar(true)} onMouseLeave={() => setHoverStar(false)}/>
                         <img src={hoverReload ? reloadButtonHover : reloadButton} height="20" width="20" className="title-bar-button reload-button" onClick={reload} onMouseEnter={() => setHoverReload(true)} onMouseLeave={() => setHoverReload(false)}/>
                         <img src={hoverMin ? minimizeButtonHover : minimizeButton} height="20" width="20" className="title-bar-button" onClick={minimize} onMouseEnter={() => setHoverMin(true)} onMouseLeave={() => setHoverMin(false)}/>

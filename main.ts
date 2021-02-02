@@ -1,11 +1,13 @@
-import dotenv from "dotenv"
 import {app, BrowserWindow, ipcMain, dialog, shell, globalShortcut} from "electron"
+import {autoUpdater} from "electron-updater"
 import path from "path"
 import fs from "fs"
 import axios from "axios"
 import functions from "./structures/functions"
 import crunchyroll, {FFmpegProgress, DownloadOptions, CrunchyrollEpisode} from "crunchyroll.ts"
 import events from "events"
+import pack from "./package.json"
+import "./dev-app-update.yml"
 
 events.EventEmitter.defaultMaxListeners = 25
 let window: Electron.BrowserWindow | null
@@ -13,9 +15,46 @@ let ffmpegPath = path.join(app.getAppPath(), "../../ffmpeg/ffmpeg.exe") as any
 let ffprobePath = path.join(app.getAppPath(), "../../ffmpeg/ffprobe.exe") as any
 if (!fs.existsSync(ffmpegPath)) ffmpegPath = undefined
 if (!fs.existsSync(ffprobePath)) ffprobePath = undefined
-dotenv.config()
+autoUpdater.autoDownload = false
 
 const active: Array<{id: number, dest: string, action: null | "pause" | "stop" | "kill", resume?: () => boolean}> = []
+
+ipcMain.handle("logout", async (event) => {
+  await crunchyroll.logout().catch(() => null)
+})
+
+ipcMain.handle("login", async (event, username, password) => {
+  try {
+    const result = await crunchyroll.login(username, password)
+    return result.user.username
+  } catch (error) {
+    if (Number(error.response.status) === 429) {
+      return "rate limited"
+    }
+    return null
+  }
+})
+
+ipcMain.handle("login-dialog", async (event) => {
+  window?.webContents.send("close-all-dialogs", "login")
+  window?.webContents.send("show-login-dialog")
+})
+
+ipcMain.handle("install-update", async (event) => {
+  await autoUpdater.downloadUpdate()
+  autoUpdater.quitAndInstall()
+})
+
+ipcMain.handle("check-for-updates", async (event, startup: boolean) => {
+  window?.webContents.send("close-all-dialogs", "version")
+  const update = await autoUpdater.checkForUpdates()
+  let newVersion = update.updateInfo.version
+  if (pack.version === newVersion) {
+    if (!startup) window?.webContents.send("show-version-dialog", null)
+  } else {
+    window?.webContents.send("show-version-dialog", newVersion)
+  }
+})
 
 ipcMain.handle("get-downloads-folder", async (event, location: string) => {
   return app.getPath("downloads")
@@ -117,10 +156,7 @@ const downloadEpisode = async (info: any, episode: CrunchyrollEpisode) => {
       if (!active[index].resume) active[index].resume = resume
       let action = active[index].action
       if (action) {
-        if (action === "stop" || action === "kill") {
-          active[index].resume?.()
-          if (action === "kill") active.splice(index, 1)
-        }
+        if (action === "kill") active.splice(index, 1)
         return action
       }
     }
@@ -160,7 +196,7 @@ ipcMain.handle("download", async (event, info) => {
 })
 
 app.on("ready", () => {
-  window = new BrowserWindow({width: 800, height: 600, minWidth: 790, minHeight: 400, frame: false, backgroundColor: "#f97540", center: true, webPreferences: {nodeIntegration: true, contextIsolation: false, enableRemoteModule: true}})
+  window = new BrowserWindow({width: 800, height: 600, minWidth: 790, minHeight: 550, frame: false, backgroundColor: "#f97540", center: true, webPreferences: {nodeIntegration: true, contextIsolation: false, enableRemoteModule: true}})
   window.loadFile(path.join(__dirname, "index.html"))
   window.removeMenu()
   window.on("close", () => {

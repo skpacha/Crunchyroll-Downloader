@@ -11,13 +11,12 @@ This is a cute GUI application that lets you download anime episodes from Crunch
 - Download all of the episode thumbnails in png format
 - Download the subtitles of an episode (as a text file)
 - Download all of the episodes in a season (detected by the link or if the search query has no numbers)
+- If you have a premium account you can login to download premium episodes
 - Control the conversion process (pause, resume, stop, delete, etc.)
 
 ### Installation
 
-Download the latest exe installer from the [releases](https://github.com/Tenpi/Crunchyroll-Downloader-GUI/releases) tab. Don't forget to
-uninstall the app if you are going to update it (eventually I plan on integrating some auto-updating functionality). You may get a warning
-message along the lines of "running this app can harm your PC", but don't worry because it's safe.
+Download the latest exe installer from the [releases](https://github.com/Tenpi/Crunchyroll-Downloader-GUI/releases) tab. You may get a warning message along the lines of "running this app can harm your PC", but don't worry because it's safe. Updates are able to be installed automatically.
 
 ### Bugs and Requests
 
