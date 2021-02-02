@@ -81,6 +81,7 @@
     "axios": "^0.21.1",
     "bootstrap": "^4.6.0",
     "crunchyroll.ts": "^0.1.5",
+    "electron-store": "^7.0.1",
     "electron-updater": "^4.3.5",
     "ntsuspend": "^1.0.0",
     "react": "^17.0.1",

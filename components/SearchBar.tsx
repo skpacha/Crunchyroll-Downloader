@@ -6,6 +6,7 @@ import ErrorMessage from "./ErrorMessage"
 import folderButtonHover from "../assets/folderButton-hover.png"
 import searchButtonHover from "../assets/searchButton-hover.png"
 import "../styles/searchbar.less"
+import Store from "electron-store"
 import { CrunchyrollEpisode } from "crunchyroll.ts"
 
 const SearchBar: React.FunctionComponent = (props) => {

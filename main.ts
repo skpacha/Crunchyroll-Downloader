@@ -3,6 +3,7 @@ import {autoUpdater} from "electron-updater"
 import path from "path"
 import fs from "fs"
 import axios from "axios"
+import Store from "electron-store"
 import functions from "./structures/functions"
 import crunchyroll, {FFmpegProgress, DownloadOptions, CrunchyrollEpisode} from "crunchyroll.ts"
 import events from "events"
@@ -16,16 +17,34 @@ let ffprobePath = path.join(app.getAppPath(), "../../ffmpeg/ffprobe.exe") as any
 if (!fs.existsSync(ffmpegPath)) ffmpegPath = undefined
 if (!fs.existsSync(ffprobePath)) ffprobePath = undefined
 autoUpdater.autoDownload = false
+const store = new Store()
 
 const active: Array<{id: number, dest: string, action: null | "pause" | "stop" | "kill", resume?: () => boolean}> = []
 
 ipcMain.handle("logout", async (event) => {
   await crunchyroll.logout().catch(() => null)
+  store.delete("username")
+  store.delete("password")
+})
+
+ipcMain.handle("init-login", async () => {
+  const username = store.get("username", null) as string
+  const password = store.get("password", null) as string
+  if (username && password) {
+    try {
+      await crunchyroll.login(username, password)
+      return username
+    } catch {
+      return null
+    }
+  }
 })
 
 ipcMain.handle("login", async (event, username, password) => {
   try {
     const result = await crunchyroll.login(username, password)
+    store.set("username", username)
+    store.set("password", password)
     return result.user.username
   } catch (error) {
     if (Number(error.response.status) === 429) {
@@ -57,7 +76,13 @@ ipcMain.handle("check-for-updates", async (event, startup: boolean) => {
 })
 
 ipcMain.handle("get-downloads-folder", async (event, location: string) => {
-  return app.getPath("downloads")
+  if (store.has("downloads")) {
+    return store.get("downloads")
+  } else {
+    const downloads = app.getPath("downloads")
+    store.set("downloads", downloads)
+    return downloads
+  }
 })
 
 ipcMain.handle("open-location", async (event, location: string) => {

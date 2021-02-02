@@ -18,8 +18,16 @@ const LoginDialog: React.FunctionComponent = (props) => {
         ipcRenderer.on("close-all-dialogs", async (event, ignore) => {
             if (ignore !== "login") setVisible(false)
         })
-        
+        initLogin()
     }, [])
+
+    const initLogin = async () => {
+        const username = await ipcRenderer.invoke("init-login")
+        if (username) {
+            setUsername(username)
+            setLoggedIn(true)
+        }
+    }
 
     const showPassword = () => {
         if (passwordRef.current?.type === "password") {
