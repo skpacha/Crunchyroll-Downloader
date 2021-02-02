@@ -6,8 +6,7 @@ import ErrorMessage from "./ErrorMessage"
 import folderButtonHover from "../assets/folderButton-hover.png"
 import searchButtonHover from "../assets/searchButton-hover.png"
 import "../styles/searchbar.less"
-import Store from "electron-store"
-import { CrunchyrollEpisode } from "crunchyroll.ts"
+import {CrunchyrollEpisode} from "crunchyroll.ts"
 
 const SearchBar: React.FunctionComponent = (props) => {
     const [id, setID] = useState(1)
@@ -49,7 +48,10 @@ const SearchBar: React.FunctionComponent = (props) => {
         if (searchText.startsWith("http") && !/\d{5,}/.test(searchText)) searchText = await parseAnime(searchText)
         let opts = {resolution: Number(quality)} as any
         if (language === "sub") opts.preferSub = true
-        if (language === "dub") opts.preferDub = true
+        if (language === "dub") {
+            opts.preferSub = false
+            opts.preferDub = true
+        }
         if (format === "mp3") opts.audioOnly = true
         if (format === "m3u8") opts.skipConversion = true
         if (format === "png") opts.thumbnails = true
@@ -63,7 +65,7 @@ const SearchBar: React.FunctionComponent = (props) => {
                 if (opts.subtitles) {
                     parseSubtitles({id: current, episode: episodes[i], dest: directory.replace(/\\+/g, "/")})
                 } else {
-                    ipcRenderer.invoke("download", {id: current, episode: episodes[i], dest: directory.replace(/\\+/g, "/"), ...opts})
+                    ipcRenderer.invoke("download", {id: current, episode: episodes[i], dest: directory.replace(/\\+/g, "/"), ignoreError: true, ...opts})
                 }
             current += 1
             setID(prev => prev + 1)
@@ -93,12 +95,11 @@ const SearchBar: React.FunctionComponent = (props) => {
     }
 
     const enterSearch = (event: React.KeyboardEvent<HTMLElement>) => {
-        event.stopPropagation()
         if (event.key === "Enter") search()
     }
 
     return (
-        <section className="search-container" onKeyDown={enterSearch}>
+        <section className="search-container">
             <div className="search-location">
                 <div className="search-bar">
                     <input className="search-box" type="search" ref={searchBoxRef} spellCheck="false" placeholder="Crunchyroll link or anime name..." onKeyDown={enterSearch}/>
@@ -112,46 +113,46 @@ const SearchBar: React.FunctionComponent = (props) => {
                 <img className="download-location-img" width="25" height="25" src={folderHover ? folderButtonHover : folderButton} onMouseEnter={() => setFolderHover(true)} onMouseLeave={() => setFolderHover(false)} onClick={changeDirectory}/>
                 <p><span className="download-location-text">{directory}</span></p>
             </div>
-            <div className="dropdown-options" onKeyDown={enterSearch}>
+            <div className="dropdown-options">
                 <div>
                     <input className="dropdown-checkbox" type="checkbox" checked={language === "sub"} value="sub" onChange={processCheckbox}/>
-                    <label className="dropdown-label" onClick={() => setLanguage("sub")}>sub</label>
+                    <label className="dropdown-label" onKeyDown={enterSearch} onClick={() => setLanguage("sub")}>sub</label>
                 </div>
                 <div>
                     <input className="dropdown-checkbox" type="checkbox" checked={language === "dub"} value="dub" onChange={processCheckbox}/>
-                    <label className="dropdown-label" onClick={() => setLanguage("dub")}>dub</label>
+                    <label className="dropdown-label" onKeyDown={enterSearch} onClick={() => setLanguage("dub")}>dub</label>
                 </div>
                 <div>
                     <input className="dropdown-checkbox" type="checkbox" checked={format === "mp4"} value="mp4" onChange={processCheckbox}/>
-                    <label className="dropdown-label" onClick={() => setFormat("mp4")}>mp4</label>
+                    <label className="dropdown-label" onKeyDown={enterSearch} onClick={() => setFormat("mp4")}>mp4</label>
                 </div>
                 <div>
                     <input className="dropdown-checkbox" type="checkbox" checked={format === "mp3"} value="mp3" onChange={processCheckbox}/>
-                    <label className="dropdown-label" onClick={() => setFormat("mp3")}>mp3</label>
+                    <label className="dropdown-label" onKeyDown={enterSearch} onClick={() => setFormat("mp3")}>mp3</label>
                 </div>
                 <div>
                     <input className="dropdown-checkbox" type="checkbox" checked={format === "m3u8"} value="m3u8" onChange={processCheckbox}/>
-                    <label className="dropdown-label" onClick={() => setFormat("m3u8")}>m3u8</label>
+                    <label className="dropdown-label" onKeyDown={enterSearch} onClick={() => setFormat("m3u8")}>m3u8</label>
                 </div>
                 <div>
                     <input className="dropdown-checkbox" type="checkbox" checked={format === "txt"} value="txt" onChange={processCheckbox}/>
-                    <label className="dropdown-label" onClick={() => setFormat("txt")}>txt</label>
+                    <label className="dropdown-label" onKeyDown={enterSearch} onClick={() => setFormat("txt")}>txt</label>
                 </div>
                 <div>
                     <input className="dropdown-checkbox" type="checkbox" checked={format === "png"} value="png" onChange={processCheckbox}/>
-                    <label className="dropdown-label" onClick={() => setFormat("png")}>png</label>
+                    <label className="dropdown-label" onKeyDown={enterSearch} onClick={() => setFormat("png")}>png</label>
                 </div>
                 <div>
                     <input className="dropdown-checkbox" type="checkbox" checked={quality === "1080"} value="1080" onChange={processCheckbox}/>
-                    <label className="dropdown-label" onClick={() => setQuality("1080")}>1080p</label>
+                    <label className="dropdown-label" onKeyDown={enterSearch} onClick={() => setQuality("1080")}>1080p</label>
                 </div>
                 <div>
                     <input className="dropdown-checkbox" type="checkbox" checked={quality === "720"} value="720" onChange={processCheckbox}/>
-                    <label className="dropdown-label" onClick={() => setQuality("720")}>720p</label>
+                    <label className="dropdown-label" onKeyDown={enterSearch} onClick={() => setQuality("720")}>720p</label>
                 </div>
                 <div>
                     <input className="dropdown-checkbox" type="checkbox" checked={quality === "480"} value="480" onChange={processCheckbox}/>
-                    <label className="dropdown-label" onClick={() => setQuality("480")}>480p</label>
+                    <label className="dropdown-label" onKeyDown={enterSearch} onClick={() => setQuality("480")}>480p</label>
                 </div>
             </div>
         </section>

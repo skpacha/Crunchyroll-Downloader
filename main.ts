@@ -6,11 +6,11 @@ import axios from "axios"
 import Store from "electron-store"
 import functions from "./structures/functions"
 import crunchyroll, {FFmpegProgress, DownloadOptions, CrunchyrollEpisode} from "crunchyroll.ts"
-import events from "events"
+import process from "process"
 import pack from "./package.json"
 import "./dev-app-update.yml"
 
-events.EventEmitter.defaultMaxListeners = 25
+process.setMaxListeners(0)
 let window: Electron.BrowserWindow | null
 let ffmpegPath = path.join(app.getAppPath(), "../../ffmpeg/ffmpeg.exe") as any
 let ffprobePath = path.join(app.getAppPath(), "../../ffmpeg/ffprobe.exe") as any
@@ -86,6 +86,7 @@ ipcMain.handle("get-downloads-folder", async (event, location: string) => {
 })
 
 ipcMain.handle("open-location", async (event, location: string) => {
+  if (!fs.existsSync(location)) return
   if (fs.statSync(location).isDirectory()) {
     shell.openPath(path.normalize(location))
   } else {
@@ -144,7 +145,11 @@ ipcMain.handle("select-directory", async () => {
   const result = await dialog.showOpenDialog(window, {
     properties: ["openDirectory"]
   })
-  return result.filePaths[0]
+  const dir = result.filePaths[0]
+  if (dir) {
+    store.set("downloads", dir)
+    return dir
+  }
 })
 
 ipcMain.handle("get-episodes", async (event, query, info) => {
@@ -169,11 +174,8 @@ ipcMain.handle("get-episode", async (event, query, info) => {
 const downloadEpisode = async (info: any, episode: CrunchyrollEpisode) => {
   if (!episode.stream_data.streams[0]?.url && !info.thumbnails) return Promise.reject("premium only")
   let format = info.skipConversion ? "m3u8" : (info.audioOnly ? "mp3" : "mp4") 
-  let dest = `${info.dest}/${episode.collection_name.replace(/-/g, " ")} ${episode.episode_number}.${format}`
-  if (info.thumbnails) {
-    format = "png"
-    dest = `${info.dest}/${episode.collection_name.replace(/-/g, " ")} ${episode.episode_number}`
-  }
+  if (info.thumbnails) format = "png"
+  let dest = crunchyroll.util.parseDest(episode, format, info.dest)
   const videoProgress = (progress: FFmpegProgress, resume: () => boolean) => {
     window?.webContents.send("download-progress", {id: info.id, progress})
     let index = active.findIndex((e) => e.id === info.id)
@@ -217,7 +219,9 @@ ipcMain.handle("download-error", async (event, info) => {
 })
 
 ipcMain.handle("download", async (event, info) => {
-  await downloadEpisode(info, info.episode).catch((err) => window?.webContents.send("download-error", "download"))
+  await downloadEpisode(info, info.episode).catch((err) => {
+    if (!info.ignoreError) window?.webContents.send("download-error", "download")
+  })
 })
 
 app.on("ready", () => {

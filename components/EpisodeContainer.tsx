@@ -52,19 +52,24 @@ const EpisodeContainer: React.FunctionComponent<EpisodeContainerProps> = (props:
     const episodeContainerRef = useRef(null) as React.RefObject<HTMLElement>
     
     useEffect(() => {
-        ipcRenderer.on("download-progress", (event, info: {id: number, progress: FFmpegProgress}) => {
+        const downloadProgress = (event: any, info: {id: number, progress: FFmpegProgress}) => {
             if (info.id === props.id) {
                 if (resolution !== info.progress.resolution) setResolution(info.progress.resolution)
                 setProgress(info.progress.percent)
                 setTime(`${functions.formatMS(info.progress.time)} / ${functions.formatMS(info.progress.duration)}`)
             }
-        })
-        ipcRenderer.on("download-ended", (event, info: {id: number, output: string}) => {
+        }
+        const downloadEnded = (event: any, info: {id: number, output: string}) => {
             if (info.id === props.id) {
                 setOutput(info.output)
             }
-        })
-        ipcRenderer.on("debug", (event, info) => console.log(info))
+        }
+        ipcRenderer.on("download-progress", downloadProgress)
+        ipcRenderer.on("download-ended", downloadEnded)
+        return () => {
+            ipcRenderer.removeListener("download-progress", downloadProgress)
+            ipcRenderer.removeListener("download-ended", downloadEnded)
+        }
     }, [])
 
     useEffect(() => {
@@ -83,7 +88,7 @@ const EpisodeContainer: React.FunctionComponent<EpisodeContainerProps> = (props:
     }
     
     const stopDownload = async () => {
-        if (progress < 0 || progress === 100) return
+        if (progress < 0 || progress >= 99) return
         const success = await ipcRenderer.invoke("stop-download", props.id)
         if (success) setStopped(true)
     }

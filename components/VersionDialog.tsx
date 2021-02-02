@@ -8,16 +8,22 @@ const VersionDialog: React.FunctionComponent = (props) => {
     let [visible, setVisible] = useState(false)
     
     useEffect(() => {
-        ipcRenderer.on("show-version-dialog", async (event, update) => {
+        const showVersionDialog = async (event: any, update: any) => {
             setVisible((prev) => !prev)
             if (update) {
                 setVersion(update)
                 setNewVersion(true)
             }
-        })
-        ipcRenderer.on("close-all-dialogs", async (event, ignore) => {
+        }
+        const closeAllDialogs = async (event: any, ignore: any) => {
             if (ignore !== "version") setVisible(false)
-        })
+        }
+        ipcRenderer.on("show-version-dialog", showVersionDialog)
+        ipcRenderer.on("close-all-dialogs", closeAllDialogs)
+        return () => {
+            ipcRenderer.removeListener("show-version-dialog", showVersionDialog)
+            ipcRenderer.removeListener("close-all-dialogs", closeAllDialogs)
+        }
     }, [])
 
     const getText = () => {

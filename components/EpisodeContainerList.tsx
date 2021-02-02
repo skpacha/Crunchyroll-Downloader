@@ -8,7 +8,7 @@ import "../styles/episodecontainerlist.less"
 const EpisodeContainerList: React.FunctionComponent = (props) => {
     const [containers, setContainers] = useState([] as  Array<{id: number, jsx: any}>)
     useEffect(() => {
-        ipcRenderer.on("download-started", (event, info: {id: number, episode: CrunchyrollEpisode, format: string}) => {
+        const downloadStarted = (event: any, info: {id: number, episode: CrunchyrollEpisode, format: string}) => {
             const progress = {percent: -1} as FFmpegProgress
             setContainers(prev => {
                 let newState = [...prev]
@@ -16,7 +16,11 @@ const EpisodeContainerList: React.FunctionComponent = (props) => {
                 if (index === -1) newState = [...newState, {id: info.id, jsx: <EpisodeContainer key={info.id} id={info.id} format={info.format} episode={info.episode} progress={progress} remove={removeContainer}/>}]
                 return newState
             })
-        })
+        }
+        ipcRenderer.on("download-started", downloadStarted)
+        return () => {
+            ipcRenderer.removeListener("download-started", downloadStarted)
+        }
     }, [])
 
     const removeContainer = (id: number) => {
@@ -37,7 +41,7 @@ const EpisodeContainerList: React.FunctionComponent = (props) => {
     }
 
     return (
-        <Reorder reorderId="episode-containers" component="ul" holdTime={100} onReorder={reorder}>{
+        <Reorder reorderId="episode-containers" component="ul" holdTime={200} onReorder={reorder}>{
             containers.map((c) => (
                 <li key={c.id}>
                     {c.jsx}

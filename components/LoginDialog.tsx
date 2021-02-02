@@ -11,14 +11,20 @@ const LoginDialog: React.FunctionComponent = (props) => {
     const usernameRef = useRef(null) as React.RefObject<HTMLInputElement>
     
     useEffect(() => {
-        ipcRenderer.on("show-login-dialog", async (event, update) => {
+        const showLoginDialog = async (event: any, update: any) => {
             setVisible((prev) => !prev)
             if (!visible) setLoginError(null)
-        })
-        ipcRenderer.on("close-all-dialogs", async (event, ignore) => {
+        }
+        const closeAllDialogs = async (event: any, ignore: any) => {
             if (ignore !== "login") setVisible(false)
-        })
+        }
+        ipcRenderer.on("show-login-dialog", showLoginDialog)
+        ipcRenderer.on("close-all-dialogs", closeAllDialogs)
         initLogin()
+        return () => {
+            ipcRenderer.removeListener("show-login-dialog", showLoginDialog)
+            ipcRenderer.removeListener("close-all-dialogs", closeAllDialogs)
+        }
     }, [])
 
     const initLogin = async () => {

@@ -6,7 +6,7 @@
   "scripts": {
     "start": "npm run clean && webpack && electron dist/main.js",
     "clean": "del-cli ./dist",
-    "release": "npm run clean ./build && webpack && dotenv -- electron-builder -p always"
+    "release": "npm run clean ./build && webpack && electron-builder -p always"
   },
   "keywords": [
     "crunchyroll",
@@ -80,7 +80,7 @@
   "dependencies": {
     "axios": "^0.21.1",
     "bootstrap": "^4.6.0",
-    "crunchyroll.ts": "^0.1.5",
+    "crunchyroll.ts": "^0.1.6",
     "electron-store": "^7.0.1",
     "electron-updater": "^4.3.5",
     "ntsuspend": "^1.0.0",

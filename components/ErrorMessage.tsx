@@ -6,9 +6,13 @@ const ErrorMessage: React.FunctionComponent = (props) => {
     const [error, setError] = useState(null as "search" | "download" | "subtitles" | null)
     
     useEffect(() => {
-        ipcRenderer.on("download-error", (event, err) => {
+        const downloadError = (event: any, err: any) => {
             setError(err)
-        })
+        }
+        ipcRenderer.on("download-error", downloadError)
+        return () => {
+            ipcRenderer.removeListener("download-error", downloadError)
+        }
     }, [])
 
     const getMessage = () => {
