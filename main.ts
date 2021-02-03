@@ -43,11 +43,11 @@ ipcMain.handle("init-login", async () => {
 ipcMain.handle("login", async (event, username, password) => {
   try {
     const result = await crunchyroll.login(username, password)
-    store.set("username", username)
+    store.set("username", result.user.username)
     store.set("password", password)
     return result.user.username
   } catch (error) {
-    if (Number(error.response.status) === 429) {
+    if (Number(error.response?.status) === 429) {
       return "rate limited"
     }
     return null
