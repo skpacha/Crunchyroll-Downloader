@@ -224,21 +224,34 @@ ipcMain.handle("download", async (event, info) => {
   })
 })
 
-app.on("ready", () => {
-  window = new BrowserWindow({width: 800, height: 600, minWidth: 790, minHeight: 550, frame: false, backgroundColor: "#f97540", center: true, webPreferences: {nodeIntegration: true, contextIsolation: false, enableRemoteModule: true}})
-  window.loadFile(path.join(__dirname, "index.html"))
-  window.removeMenu()
-  window.on("close", () => {
-    for (let i = 0; i < active.length; i++) {
-      active[i].action = "stop"
+const singleLock = app.requestSingleInstanceLock()
+
+if (!singleLock) {
+  app.quit()
+} else {
+  app.on("second-instance", () => {
+    if (window) {
+      if (window.isMinimized()) window.restore()
+      window.focus()
     }
   })
-  window.on("closed", () => {
-    window = null
+
+  app.on("ready", () => {
+    window = new BrowserWindow({width: 800, height: 600, minWidth: 790, minHeight: 550, frame: false, backgroundColor: "#f97540", center: true, webPreferences: {nodeIntegration: true, contextIsolation: false, enableRemoteModule: true}})
+    window.loadFile(path.join(__dirname, "index.html"))
+    window.removeMenu()
+    window.on("close", () => {
+      for (let i = 0; i < active.length; i++) {
+        active[i].action = "stop"
+      }
+    })
+    window.on("closed", () => {
+      window = null
+    })
+    globalShortcut.register("Control+Shift+I", () => {
+      window?.webContents.toggleDevTools()
+    })
   })
-  globalShortcut.register("Control+Shift+I", () => {
-    window?.webContents.toggleDevTools()
-  })
-})
+}
 
 app.allowRendererProcessReuse = false
