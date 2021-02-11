@@ -189,6 +189,7 @@ const EpisodeContainer: React.FunctionComponent<EpisodeContainerProps> = (props:
     }
 
     const mouseLeave = () => {
+        setHover(false)
         document.documentElement.style.setProperty("--selection-color", "#ff9270")
     }
 

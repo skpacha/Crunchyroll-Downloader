@@ -2,6 +2,17 @@ import axios from "axios"
 import fs from "fs"
 import path from "path"
 
+let timer = null as any
+let mouseDown = false
+if (typeof window !== "undefined") {
+    document.onmousedown = () => {
+        mouseDown = true
+    }
+    document.onmouseup = () => {
+        mouseDown = false
+    }
+}
+
 export default class functions {
     public static download = async (link: string, dest: string) => {
         const headers = {"user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.122 Safari/537.36", "referer": "https://www.pixiv.net/"}
@@ -46,5 +57,48 @@ export default class functions {
                 console.log(e)
             }
         }
+    }
+
+    public static autoScroll = (event: MouseEvent) => {
+        if (!mouseDown) return
+        const edgeSize = 100
+        const edgeTop = edgeSize
+        const edgeBottom = (document.documentElement.clientHeight - edgeSize)
+        const isInTopEdge = (event.clientY < edgeTop)
+        const isInBottomEdge = (event.clientY > edgeBottom)
+        if (!isInTopEdge && !isInBottomEdge) {
+            clearTimeout(timer)
+            return
+        }
+        const maxScrollY = (document.body.scrollHeight - document.documentElement.clientHeight)
+        const adjustScroll = () => {
+            const currentScrollY = window.pageYOffset
+            const canScrollUp = (currentScrollY > 0)
+            const canScrollDown = (currentScrollY < maxScrollY)
+            let nextScrollY = currentScrollY
+            const maxStep = 50
+            if (isInTopEdge && canScrollUp) {
+                const intensity = ((edgeTop - event.clientY) / edgeSize)
+                nextScrollY = (nextScrollY - (maxStep * intensity))
+            } else if (isInBottomEdge && canScrollDown) {
+                const intensity = ((event.clientY - edgeBottom) / edgeSize)
+                nextScrollY = (nextScrollY + (maxStep * intensity))
+            }
+            nextScrollY = Math.max(0, Math.min(maxScrollY, nextScrollY))
+            if (nextScrollY !== currentScrollY) {
+                window.scrollTo(window.pageXOffset, nextScrollY)
+                return true
+            } else {
+                return false
+            }
+        }
+        const checkScroll = () => {
+            clearTimeout(timer)
+            if (!mouseDown) return
+            if (adjustScroll()) {
+                timer = setTimeout(checkScroll, 30)
+            }
+        }
+        checkScroll()
     }
 }

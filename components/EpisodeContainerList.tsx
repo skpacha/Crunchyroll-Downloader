@@ -41,7 +41,7 @@ const EpisodeContainerList: React.FunctionComponent = (props) => {
     }
 
     return (
-        <Reorder reorderId="episode-containers" component="ul" holdTime={200} onReorder={reorder}>{
+        <Reorder reorderId="episode-containers" component="ul" holdTime={50} onReorder={reorder}>{
             containers.map((c) => (
                 <li key={c.id}>
                     {c.jsx}
