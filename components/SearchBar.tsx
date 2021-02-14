@@ -53,7 +53,6 @@ const SearchBar: React.FunctionComponent = (props) => {
     }
 
     const parseSubtitles = async (info: {id: number, episode: CrunchyrollEpisode, dest: string, kind: string}) => {
-        if (type === "dub") return ipcRenderer.invoke("download-error", "subtitles-dub")
         const html = await fetch(info.episode.url).then((r) => r.text())
         const vilos = JSON.parse(html.match(/(?<=vilos.config.media = )(.*?)(?=;)/)?.[0] ?? "")
         let subtitles = vilos?.subtitles.filter((s: any) => s.language === language)
@@ -135,7 +134,7 @@ const SearchBar: React.FunctionComponent = (props) => {
                     <p className="dropdown-label">Type: </p>
                     <DropdownButton title={type} drop="down">
                         <Dropdown.Item active={type === "sub"} onClick={() => {setType("sub"); if (language === "jaJP") setLanguage("enUS")}}>sub</Dropdown.Item>
-                        <Dropdown.Item active={type === "dub"} onClick={() => setType("dub")}>dub</Dropdown.Item>
+                        <Dropdown.Item active={type === "dub"} onClick={() => {setType("dub"); if (format === "txt") setFormat("mp4")}}>dub</Dropdown.Item>
                     </DropdownButton>
                 </div>
                 <div className="dropdown-container">
@@ -157,7 +156,7 @@ const SearchBar: React.FunctionComponent = (props) => {
                         <Dropdown.Item active={format === "mp4"} onClick={() => setFormat("mp4")}>mp4</Dropdown.Item>
                         <Dropdown.Item active={format === "mp3"} onClick={() => setFormat("mp3")}>mp3</Dropdown.Item>
                         <Dropdown.Item active={format === "m3u8"} onClick={() => setFormat("m3u8")}>m3u8</Dropdown.Item>
-                        <Dropdown.Item active={format === "txt"} onClick={() => setFormat("txt")}>txt</Dropdown.Item>
+                        {type === "sub" ? <Dropdown.Item active={format === "txt"} onClick={() => setFormat("txt")}>txt</Dropdown.Item> : null}
                         <Dropdown.Item active={format === "png"} onClick={() => setFormat("png")}>png</Dropdown.Item>
                     </DropdownButton>
                 </div>
