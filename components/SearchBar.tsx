@@ -134,8 +134,8 @@ const SearchBar: React.FunctionComponent = (props) => {
                 <div className="dropdown-container">
                     <p className="dropdown-label">Type: </p>
                     <DropdownButton title={type} drop="down">
-                        <Dropdown.Item active={type === "sub"} onClick={() => {setType("sub"); if (language === "jaJP") setLanguage("enUS")}}>Sub</Dropdown.Item>
-                        <Dropdown.Item active={type === "dub"} onClick={() => setType("dub")}>Dub</Dropdown.Item>
+                        <Dropdown.Item active={type === "sub"} onClick={() => {setType("sub"); if (language === "jaJP") setLanguage("enUS")}}>sub</Dropdown.Item>
+                        <Dropdown.Item active={type === "dub"} onClick={() => setType("dub")}>dub</Dropdown.Item>
                     </DropdownButton>
                 </div>
                 <div className="dropdown-container">
