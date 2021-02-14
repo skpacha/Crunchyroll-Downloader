@@ -8,12 +8,12 @@ import "../styles/episodecontainerlist.less"
 const EpisodeContainerList: React.FunctionComponent = (props) => {
     const [containers, setContainers] = useState([] as  Array<{id: number, jsx: any}>)
     useEffect(() => {
-        const downloadStarted = (event: any, info: {id: number, episode: CrunchyrollEpisode, format: string}) => {
+        const downloadStarted = (event: any, info: {id: number, kind: string, episode: CrunchyrollEpisode, format: string}) => {
             const progress = {percent: -1} as FFmpegProgress
             setContainers(prev => {
                 let newState = [...prev]
                 const index = newState.findIndex((c) => c.id === info.id)
-                if (index === -1) newState = [...newState, {id: info.id, jsx: <EpisodeContainer key={info.id} id={info.id} format={info.format} episode={info.episode} progress={progress} remove={removeContainer}/>}]
+                if (index === -1) newState = [...newState, {id: info.id, jsx: <EpisodeContainer key={info.id} id={info.id} kind={info.kind} format={info.format} episode={info.episode} progress={progress} remove={removeContainer}/>}]
                 return newState
             })
         }

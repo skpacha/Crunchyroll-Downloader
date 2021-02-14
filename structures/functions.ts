@@ -40,6 +40,29 @@ export default class functions {
         return str.startsWith("0") ? str.slice(1) : str
     }
 
+    public static parseLocale = (locale: string) => {
+        if (locale === "jaJP") return "Japanese"
+        if (locale === "enUS") return "English"
+        if (locale === "enGB") return "English"
+        if (locale === "esES") return "Spanish"
+        if (locale === "esLA") return "Spanish"
+        if (locale === "frFR") return "French"
+        if (locale === "deDE") return "German"
+        if (locale === "itIT") return "Italian"
+        if (locale === "ruRU") return "Russian"
+        if (locale === "ptBR") return "Portuguese"
+        if (locale === "ptPT") return "Portuguese"
+        if (locale.toLowerCase() === "japanese") return "jaJP"
+        if (locale.toLowerCase() === "english") return "enUS"
+        if (locale.toLowerCase() === "spanish") return "esES"
+        if (locale.toLowerCase() === "french") return "frFR"
+        if (locale.toLowerCase() === "german") return "deDE"
+        if (locale.toLowerCase() === "italian") return "itIT"
+        if (locale.toLowerCase() === "russian") return "ruRU"
+        if (locale.toLowerCase() === "portuguese") return "ptPT"
+        return "None"
+    }
+
     public static removeDirectory = (dir: string) => {
         if (dir === "/" || dir === "./") return
         if (fs.existsSync(dir)) {

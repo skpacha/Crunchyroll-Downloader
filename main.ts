@@ -172,7 +172,6 @@ ipcMain.handle("get-episode", async (event, query, info) => {
 })
 
 const downloadEpisode = async (info: any, episode: CrunchyrollEpisode) => {
-  if (!episode.stream_data.streams[0]?.url && !info.thumbnails) return Promise.reject("premium only")
   let format = info.skipConversion ? "m3u8" : (info.audioOnly ? "mp3" : "mp4") 
   if (info.thumbnails) format = "png"
   let dest = crunchyroll.util.parseDest(episode, format, info.dest)
@@ -189,7 +188,7 @@ const downloadEpisode = async (info: any, episode: CrunchyrollEpisode) => {
     }
   }
   active.push({id: info.id, dest, action: null})
-  window?.webContents.send("download-started", {id: info.id, episode, format})
+  window?.webContents.send("download-started", {id: info.id, kind: info.kind, episode, format})
   info.ffmpegPath = ffmpegPath
   info.ffprobePath = ffprobePath
   let output = ""
@@ -206,9 +205,9 @@ const downloadEpisode = async (info: any, episode: CrunchyrollEpisode) => {
 }
 
 ipcMain.handle("download-subtitles", async (event, info) => {
-  let output = `${info.dest}/${info.episode.collection_name.replace(/-/g, " ")} ${info.episode.episode_number}.txt`
+  let output = `${info.dest}/${info.episode.collection_name.replace(/-/g, " ").replace(/:/g, " ")} ${info.episode.episode_number}.txt`
   active.push({id: info.id, dest: output, action: null})
-  window?.webContents.send("download-started", {id: info.id, episode: info.episode, format: "txt"})
+  window?.webContents.send("download-started", {id: info.id, episode: info.episode, format: "txt", kind: info.kind})
   const data = await axios.get(info.url).then((r) => r.data)
   fs.writeFileSync(output, data)
   window?.webContents.send("download-ended", {id: info.id, output})
@@ -220,7 +219,7 @@ ipcMain.handle("download-error", async (event, info) => {
 
 ipcMain.handle("download", async (event, info) => {
   await downloadEpisode(info, info.episode).catch((err) => {
-    if (!info.ignoreError) window?.webContents.send("download-error", "download")
+    window?.webContents.send("download-error", "download")
   })
 })
 

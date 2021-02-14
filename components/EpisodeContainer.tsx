@@ -29,6 +29,7 @@ export interface EpisodeContainerProps {
     format: string
     progress: FFmpegProgress
     remove: (id: number) => void
+    kind: string
 }
 
 const EpisodeContainer: React.FunctionComponent<EpisodeContainerProps> = (props: EpisodeContainerProps) => {
@@ -170,18 +171,7 @@ const EpisodeContainer: React.FunctionComponent<EpisodeContainerProps> = (props:
     }
 
     const resolutionInfo = () => {
-        let str = "English Sub"
-        if (props.episode.stream_data.audio_lang === "enUS") str = "English Dub"
-        if (props.episode.stream_data.audio_lang === "enGB") str = "English Dub"
-        if (props.episode.stream_data.audio_lang === "esES") str = "Spanish Dub"
-        if (props.episode.stream_data.audio_lang === "esLA") str = "Spanish Dub"
-        if (props.episode.stream_data.audio_lang === "frFR") str = "French Dub"
-        if (props.episode.stream_data.audio_lang === "itIT") str = "Italian Dub"
-        if (props.episode.stream_data.audio_lang === "deDE") str = "German Dub"
-        if (props.episode.stream_data.audio_lang === "ptBR") str = "Portuguese Dub"
-        if (props.episode.stream_data.audio_lang === "ptPT") str = "Portuguese Dub"
-        if (props.episode.stream_data.audio_lang === "ruRU") str = "Russian Dub"
-        return resolution ? `${str} ${resolution}p` : str
+        return resolution ? `${props.kind} ${resolution}p` : props.kind
     }
 
     const mouseEnter = () => {

@@ -2,10 +2,10 @@
 
 <img src="assets/example.png">
 
-This is a cute GUI application that lets you download anime episodes from Crunchyroll. It was created with Electron, React, and Node.js.
+This is a cute GUI application that lets you download anime episodes from Crunchyroll.
 
 ### Features:
-- Download anime episodes in mp4 format, and specify a quality (1080p, 720p, 480p)
+- Download anime episodes in mp4 format, and specify a quality (1080p, 720p, 480p, etc.)
 - Download just the audio of an episode in mp3 format
 - Download the m3u8 playlist (very fast, and still playable with the VLC player)
 - Download all of the episode thumbnails in png format
