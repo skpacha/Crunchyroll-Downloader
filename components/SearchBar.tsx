@@ -94,6 +94,7 @@ const SearchBar: React.FunctionComponent = (props) => {
             opts.preferSub = false
             opts.preferDub = true
         }
+        console.log(type)
         if (format === "mp3") opts.audioOnly = true
         if (format === "m3u8") opts.skipConversion = true
         if (format === "png") opts.thumbnails = true
@@ -102,6 +103,7 @@ const SearchBar: React.FunctionComponent = (props) => {
         const episode = await ipcRenderer.invoke("get-episode", searchText, opts)
         if (!episode) {
             const episodes = await ipcRenderer.invoke("get-episodes", searchText, opts)
+            console.log(episodes)
             if (!episodes) return
             let current = id
             for (let i = 0; i < episodes.length; i++) {

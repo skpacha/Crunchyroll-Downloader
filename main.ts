@@ -22,6 +22,10 @@ const store = new Store()
 
 const active: Array<{id: number, dest: string, action: null | "pause" | "stop" | "kill", resume?: () => boolean}> = []
 
+ipcMain.handle("clear-all", () => {
+  window?.webContents.send("clear-all")
+})
+
 ipcMain.handle("get-cookie", () => {
   return store.get("cookie", "")
 })
@@ -291,7 +295,6 @@ if (!singleLock) {
     })
     session.defaultSession.webRequest.onSendHeaders({urls: ["https://www.crunchyroll.com/", "https://www.crunchyroll.com/login"]}, (details) => {
       const cookie = details.requestHeaders["Cookie"]
-      if (store.has("cookie")) store.delete("cookie")
       store.set("cookie", cookie)
     })
   })

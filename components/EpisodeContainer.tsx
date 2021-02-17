@@ -49,6 +49,7 @@ const EpisodeContainer: React.FunctionComponent<EpisodeContainerProps> = (props:
     const [hoverTrash, setHoverTrash] = useState(false)
     const [progressColor, setProgressColor] = useState("")
     const [backgroundColor, setBackgroundColor] = useState("")
+    const [clearSignal, setClearSignal] = useState(false)
     const progressBarRef = useRef(null) as React.RefObject<HTMLDivElement>
     const episodeContainerRef = useRef(null) as React.RefObject<HTMLElement>
     
@@ -65,17 +66,23 @@ const EpisodeContainer: React.FunctionComponent<EpisodeContainerProps> = (props:
                 setOutput(info.output)
             }
         }
+        const clearAll = () => {
+            setClearSignal(true)
+        }
         ipcRenderer.on("download-progress", downloadProgress)
         ipcRenderer.on("download-ended", downloadEnded)
+        ipcRenderer.on("clear-all", clearAll)
         return () => {
             ipcRenderer.removeListener("download-progress", downloadProgress)
             ipcRenderer.removeListener("download-ended", downloadEnded)
+            ipcRenderer.removeListener("clear-all", clearAll)
         }
     }, [])
 
     useEffect(() => {
         updateProgressColor()
         updateBackgroundColor()
+        if (clearSignal) closeDownload()
     })
 
     const deleteDownload = async () => {

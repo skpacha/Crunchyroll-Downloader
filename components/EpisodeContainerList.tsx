@@ -1,11 +1,13 @@
 import {ipcRenderer} from "electron"
-import React, {useState, useEffect, useRef} from "react"
+import React, {useState, useEffect, useContext} from "react"
 import EpisodeContainer from "./EpisodeContainer"
 import Reorder from "react-reorder"
+import {ClearAllContext} from "../renderer"
 import {CrunchyrollEpisode, FFmpegProgress} from "crunchyroll.ts"
 import "../styles/episodecontainerlist.less"
 
 const EpisodeContainerList: React.FunctionComponent = (props) => {
+    const {clearAll, setClearAll} = useContext(ClearAllContext)
     const [containers, setContainers] = useState([] as  Array<{id: number, jsx: any}>)
     useEffect(() => {
         const downloadStarted = (event: any, info: {id: number, kind: string, episode: CrunchyrollEpisode, format: string}) => {
@@ -22,6 +24,15 @@ const EpisodeContainerList: React.FunctionComponent = (props) => {
             ipcRenderer.removeListener("download-started", downloadStarted)
         }
     }, [])
+
+    useEffect(() => {
+        update()
+    })
+
+    const update = () => {
+        let found = containers.length ? true : false
+        setClearAll(found)
+    }
 
     const removeContainer = (id: number) => {
         setContainers(prev => {
