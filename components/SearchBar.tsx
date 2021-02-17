@@ -25,19 +25,31 @@ const SearchBar: React.FunctionComponent = (props) => {
         ipcRenderer.invoke("get-downloads-folder").then((f) => setDirectory(f))
     }, [])
 
+    useEffect(() => {
+        const downloadURL = (event: any, url: string) => {
+            if (url) download(url)
+        }
+        ipcRenderer.on("download-url", downloadURL)
+        return () => {
+            ipcRenderer.removeListener("download-url", downloadURL)
+        }
+    })
+
     const changeDirectory = async () => {
         const dir = await ipcRenderer.invoke("select-directory")
         if (dir) setDirectory(dir)
     }
 
     const parseAnime = async (link: string) => {
-        const html = await fetch(link).then((r) => r.text())
+        const cookie = await ipcRenderer.invoke("get-cookie")
+        const html = await fetch(link, {headers: {cookie}}).then((r) => r.text())
         const match = html.match(/(?<=<div class="show-actions" group_id=")(.*?)(?=")/)?.[0]
         return match ? match : link
     }
 
     const parsePlaylist = async (episode: CrunchyrollEpisode) => {
-        const html = await fetch(episode.url).then((r) => r.text())
+        const cookie = await ipcRenderer.invoke("get-cookie")
+        const html = await fetch(episode.url, {headers: {cookie}}).then((r) => r.text())
         const vilos = JSON.parse(html.match(/(?<=vilos.config.media = )(.*?)(?=;)/)?.[0] ?? "")
         const hls = vilos?.streams.filter((s: any) => s.format === "adaptive_hls" || s.format === "trailer_hls")
         let audioLang = type === "sub" ? "jaJP" : language
@@ -53,7 +65,8 @@ const SearchBar: React.FunctionComponent = (props) => {
     }
 
     const parseSubtitles = async (info: {id: number, episode: CrunchyrollEpisode, dest: string, kind: string}) => {
-        const html = await fetch(info.episode.url).then((r) => r.text())
+        const cookie = await ipcRenderer.invoke("get-cookie")
+        const html = await fetch(info.episode.url, {headers: {cookie}}).then((r) => r.text())
         const vilos = JSON.parse(html.match(/(?<=vilos.config.media = )(.*?)(?=;)/)?.[0] ?? "")
         let subtitles = vilos?.subtitles.filter((s: any) => s.language === language)
         if (!subtitles && language === "esLA") subtitles = vilos?.subtitles.filter((s: any) => s.language === "esES")
@@ -65,10 +78,14 @@ const SearchBar: React.FunctionComponent = (props) => {
     const getKind = () => {
         return `${functions.parseLocale(language)} ${type === "dub" ? "Dub" : "Sub"}`
     }
-      
-    const search = async () => {
+
+    const search = () => {
         let searchText = searchBoxRef.current?.value.trim() ?? ""
         searchBoxRef.current!.value = ""
+        return download(searchText)
+    }
+      
+    const download = async (searchText: string) => {
         if (!searchText) return
         if (searchText.startsWith("http") && !/\d{5,}/.test(searchText)) searchText = await parseAnime(searchText)
         let opts = {resolution: Number(quality), language} as any
@@ -100,13 +117,18 @@ const SearchBar: React.FunctionComponent = (props) => {
             }
         } else {
             if (opts.subtitles) {
-                parseSubtitles({id, episode, dest: directory.replace(/\\+/g, "/"), kind: opts.kind})
+                setID((prev) => {
+                    parseSubtitles({id: prev, episode, dest: directory.replace(/\\+/g, "/"), kind: opts.kind})
+                    return prev + 1
+                })
             } else {
                 const playlist = await parsePlaylist(episode)
                 if (!playlist) return
-                ipcRenderer.invoke("download", {id, episode, dest: directory.replace(/\\+/g, "/"), playlist, ...opts})
+                setID((prev) => {
+                    ipcRenderer.invoke("download", {id: prev, episode, dest: directory.replace(/\\+/g, "/"), playlist, ...opts})
+                    return prev + 1
+                })
             }
-            setID(prev => prev + 1)
         }
     }
 

@@ -1,4 +1,4 @@
-import {app, BrowserWindow, ipcMain, dialog, shell, globalShortcut} from "electron"
+import {app, BrowserWindow, ipcMain, dialog, shell, globalShortcut, session} from "electron"
 import {autoUpdater} from "electron-updater"
 import path from "path"
 import fs from "fs"
@@ -12,6 +12,7 @@ import "./dev-app-update.yml"
 
 process.setMaxListeners(0)
 let window: Electron.BrowserWindow | null
+let website: Electron.BrowserWindow | null
 let ffmpegPath = path.join(app.getAppPath(), "../../ffmpeg/ffmpeg.exe") as any
 let ffprobePath = path.join(app.getAppPath(), "../../ffmpeg/ffprobe.exe") as any
 if (!fs.existsSync(ffmpegPath)) ffmpegPath = undefined
@@ -20,6 +21,42 @@ autoUpdater.autoDownload = false
 const store = new Store()
 
 const active: Array<{id: number, dest: string, action: null | "pause" | "stop" | "kill", resume?: () => boolean}> = []
+
+ipcMain.handle("get-cookie", () => {
+  return store.get("cookie", "")
+})
+
+ipcMain.handle("download-url", (event, url) => {
+  if (window?.isMinimized()) window?.restore()
+  window?.focus()
+  window?.webContents.send("download-url", url)
+})
+
+const openWebsite = async () => {
+  if (!website) {
+    website = new BrowserWindow({width: 800, height: 600, minWidth: 790, minHeight: 550, frame: false, backgroundColor: "#ffffff", center: false, webPreferences: {nodeIntegration: true, webviewTag: true, contextIsolation: false, enableRemoteModule: true}})
+    await website.loadFile(path.join(__dirname, "crunchyroll.html"))
+    website?.on("closed", () => {
+      website = null
+    })
+  } else {
+    if (website.isMinimized()) website.restore()
+    website.focus()
+  }
+}
+
+ipcMain.handle("open-url", async (event, url: string) => {
+  await openWebsite()
+  website?.webContents.send("open-url", url)
+})
+
+ipcMain.handle("open-website", async () => {
+  if (website) {
+    website.close()
+  } else {
+    await openWebsite()
+  }
+})
 
 ipcMain.handle("logout", async (event) => {
   await crunchyroll.logout().catch(() => null)
@@ -240,6 +277,7 @@ if (!singleLock) {
     window.loadFile(path.join(__dirname, "index.html"))
     window.removeMenu()
     window.on("close", () => {
+      website?.close()
       for (let i = 0; i < active.length; i++) {
         active[i].action = "stop"
       }
@@ -249,6 +287,12 @@ if (!singleLock) {
     })
     globalShortcut.register("Control+Shift+I", () => {
       window?.webContents.toggleDevTools()
+      website?.webContents.toggleDevTools()
+    })
+    session.defaultSession.webRequest.onSendHeaders({urls: ["https://www.crunchyroll.com/", "https://www.crunchyroll.com/login"]}, (details) => {
+      const cookie = details.requestHeaders["Cookie"]
+      if (store.has("cookie")) store.delete("cookie")
+      store.set("cookie", cookie)
     })
   })
 }

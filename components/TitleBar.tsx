@@ -12,6 +12,8 @@ import maximizeButtonHover from "../assets/maximizeButton-hover.png"
 import closeButtonHover from "../assets/closeButton-hover.png"
 import loginButton from "../assets/loginButton.png"
 import loginButtonHover from "../assets/loginButton-hover.png"
+import webButton from "../assets/webButton.png"
+import webButtonHover from "../assets/webButton-hover.png"
 import appIcon from "../assets/icon.png"
 import pack from "../package.json"
 import "../styles/titlebar.less"
@@ -23,6 +25,7 @@ const TitleBar: React.FunctionComponent = (props) => {
     let [hoverReload, setHoverReload] = useState(false)
     let [hoverStar, setHoverStar] = useState(false)
     let [hoverLogin, setHoverLogin] = useState(false)
+    let [hoverWeb, setHoverWeb] = useState(false)
     
     useEffect(() => {
         ipcRenderer.invoke("check-for-updates", true)
@@ -53,15 +56,20 @@ const TitleBar: React.FunctionComponent = (props) => {
         ipcRenderer.invoke("login-dialog")
     }
 
+    const web = () => {
+        ipcRenderer.invoke("open-website")
+    }
+
     return (
         <section className="title-bar">
                 <div className="title-bar-drag-area">
                     <div className="title-container">
                         <img className="app-icon" height="22" width="22" src={appIcon}/>
-                        <p><span className="title">Crunchyroll Downloader GUI v{pack.version}</span></p>
+                        <p><span className="title">Crunchyroll Downloader v{pack.version}</span></p>
                     </div>
                     <div className="title-bar-buttons">
-                    <img src={hoverLogin ? loginButtonHover : loginButton} height="20" width="20" className="title-bar-button" onClick={login} onMouseEnter={() => setHoverLogin(true)} onMouseLeave={() => setHoverLogin(false)}/>
+                        <img src={hoverWeb ? webButtonHover : webButton} height="20" width="20" className="title-bar-button" onClick={web} onMouseEnter={() => setHoverWeb(true)} onMouseLeave={() => setHoverWeb(false)}/>
+                        {/*<img src={hoverLogin ? loginButtonHover : loginButton} height="20" width="20" className="title-bar-button" onClick={login} onMouseEnter={() => setHoverLogin(true)} onMouseLeave={() => setHoverLogin(false)}/>*/}
                         <img src={hoverStar ? starButtonHover : starButton} height="20" width="20" className="title-bar-button star-button" onClick={star} onMouseEnter={() => setHoverStar(true)} onMouseLeave={() => setHoverStar(false)}/>
                         <img src={hoverReload ? reloadButtonHover : reloadButton} height="20" width="20" className="title-bar-button reload-button" onClick={reload} onMouseEnter={() => setHoverReload(true)} onMouseLeave={() => setHoverReload(false)}/>
                         <img src={hoverMin ? minimizeButtonHover : minimizeButton} height="20" width="20" className="title-bar-button" onClick={minimize} onMouseEnter={() => setHoverMin(true)} onMouseLeave={() => setHoverMin(false)}/>

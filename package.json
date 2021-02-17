@@ -1,6 +1,6 @@
 {
-  "name": "crunchyroll-downloader-gui",
-  "version": "0.0.9",
+  "name": "crunchyroll-downloader",
+  "version": "0.1.0",
   "description": "A cute gui application that downloads anime episodes from crunchyroll",
   "main": "dist/main.js",
   "scripts": {
@@ -17,11 +17,11 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/Tenpi/Crunchyroll-Downloader-GUI"
+    "url": "https://github.com/Tenpi/Crunchyroll-Downloader"
   },
   "build": {
     "appId": "com.tenpi.crunchydl",
-    "productName": "Crunchyroll Downloader GUI",
+    "productName": "Crunchyroll Downloader",
     "icon": "./assets/icon.png",
     "directories": {
       "buildResources": "assets",
@@ -34,7 +34,7 @@
       "oneClick": false,
       "perMachine": true,
       "allowToChangeInstallationDirectory": true,
-      "uninstallDisplayName": "Crunchyroll Downloader GUI",
+      "uninstallDisplayName": "Crunchyroll Downloader",
       "createDesktopShortcut": "always",
       "installerSidebar": "./assets/installer.bmp",
       "uninstallerSidebar": "./assets/installer.bmp"
@@ -48,7 +48,7 @@
     ],
     "publish": {
       "provider": "github",
-      "repo": "Crunchyroll-Downloader-GUI",
+      "repo": "Crunchyroll-Downloader",
       "owner": "Tenpi",
       "releaseType": "draft"
     }

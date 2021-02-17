@@ -1,6 +1,8 @@
-import {ipcRenderer} from "electron"
+import {ipcRenderer, remote} from "electron"
 import React, {useState, useEffect, useRef} from "react"
 import "../styles/logindialog.less"
+import axios from "axios"
+import { FormCheck } from "react-bootstrap"
 
 const LoginDialog: React.FunctionComponent = (props) => {
     let [visible, setVisible] = useState(false)

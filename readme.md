@@ -21,3 +21,7 @@ Download the latest exe installer from the [releases](https://github.com/Tenpi/C
 ### Bugs and Requests
 
 You can open an issue on my GitHub repository. I appreciate any requests, but I can't guarantee that I will fulfill all of them.
+
+### Disclaimer
+
+This tool is for personal usage/offline viewing convenience only. If you like anime, then support the industry by buying merch, DVD's, CR premium, etc.
