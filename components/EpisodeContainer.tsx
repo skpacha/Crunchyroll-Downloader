@@ -7,7 +7,8 @@ import {ProgressBar} from "react-bootstrap"
 import mp3Label from "../assets/mp3Label.png"
 import m3u8Label from "../assets/m3u8Label.png"
 import pngLabel from "../assets/pngLabel.png"
-import txtLabel from "../assets/txtLabel.png"
+import assLabel from "../assets/assLabel.png"
+import mkvLabel from "../assets/mkvLabel.png"
 import closeContainer from "../assets/closeContainer.png"
 import pauseButton from "../assets/pauseButton.png"
 import playButton from "../assets/playButton.png"
@@ -190,6 +191,15 @@ const EpisodeContainer: React.FunctionComponent<EpisodeContainerProps> = (props:
         document.documentElement.style.setProperty("--selection-color", "#ff9270")
     }
 
+    const getLabel = () => {
+        if (props.format === "mp4") return mp4Label
+        if (props.format === "mkv") return mkvLabel
+        if (props.format === "mp3") return mp3Label
+        if (props.format === "m3u8") return m3u8Label
+        if (props.format === "ass") return assLabel
+        if (props.format === "png") return pngLabel
+    }
+
     return (
         <section ref={episodeContainerRef} className="episode-wrap-container" onMouseOver={() => setHover(true)} onMouseEnter={mouseEnter} onMouseLeave={mouseLeave}>
             <div className="episode-container" onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)}>
@@ -199,7 +209,7 @@ const EpisodeContainer: React.FunctionComponent<EpisodeContainerProps> = (props:
             <div className="ep-middle">
                 <div className="ep-name">
                     <p className="ep-text hover" onMouseDown={(event) => event.stopPropagation()}><span onClick={() => ipcRenderer.invoke("open-url", props.episode.url)}>{props.episode.name}</span></p>
-                    <img className="ep-label" src={props.format === "mp4" ? mp4Label : (props.format === "mp3" ? mp3Label : (props.format === "png" ? pngLabel : (props.format === "txt" ? txtLabel : m3u8Label)))}/>
+                    <img className="ep-label" src={getLabel()}/>
                 </div>
                 <div className="ep-info">
                     <div className="ep-info-col">

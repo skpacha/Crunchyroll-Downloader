@@ -194,6 +194,7 @@ ipcMain.handle("select-directory", async () => {
 })
 
 ipcMain.handle("get-episodes", async (event, query, info) => {
+  if (/crunchyroll.com/.test(query)) return null
   let episodes = null
   if (/\d{5,}/.test(query)) {
     const anime = await crunchyroll.anime.get(query).catch(() => query)
@@ -202,18 +203,21 @@ ipcMain.handle("get-episodes", async (event, query, info) => {
     const season = await crunchyroll.season.get(query, info).catch(() => query)
     episodes = await crunchyroll.anime.episodes(season, info).catch(() => null)
   }
-  if (!episodes) window?.webContents.send("download-error", "search")
   return episodes
 })
 
 ipcMain.handle("get-episode", async (event, query, info) => {
   if (!/\d+/.test(query)) return null
   const episode = await crunchyroll.episode.get(query, info).catch(() => null)
+  if (!episode && /\d{5,}/.test(query) && /episode/.test(query)) return query
   return episode
 })
 
 const downloadEpisode = async (info: any, episode: CrunchyrollEpisode) => {
-  let format = info.skipConversion ? "m3u8" : (info.audioOnly ? "mp3" : "mp4") 
+  let format = "mp4"
+  if (info.softSubs) format = "mkv"
+  if (info.audioOnly) format = "mp3"
+  if (info.skipConversion) format = "m3u8"
   if (info.thumbnails) format = "png"
   let dest = crunchyroll.util.parseDest(episode, format, info.dest)
   const videoProgress = (progress: FFmpegProgress, resume: () => boolean) => {
@@ -246,9 +250,9 @@ const downloadEpisode = async (info: any, episode: CrunchyrollEpisode) => {
 }
 
 ipcMain.handle("download-subtitles", async (event, info) => {
-  let output = `${info.dest}/${info.episode.collection_name.replace(/-/g, " ").replace(/:/g, " ")} ${info.episode.episode_number}.txt`
+  let output = `${info.dest}/${info.episode.collection_name.replace(/-/g, " ").replace(/:/g, " ")} ${info.episode.episode_number}.ass`
   active.push({id: info.id, dest: output, action: null})
-  window?.webContents.send("download-started", {id: info.id, episode: info.episode, format: "txt", kind: info.kind})
+  window?.webContents.send("download-started", {id: info.id, episode: info.episode, format: "ass", kind: info.kind})
   const data = await axios.get(info.url).then((r) => r.data)
   fs.writeFileSync(output, data)
   window?.webContents.send("download-ended", {id: info.id, output})

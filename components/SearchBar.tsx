@@ -40,39 +40,65 @@ const SearchBar: React.FunctionComponent = (props) => {
         if (dir) setDirectory(dir)
     }
 
-    const parseAnime = async (link: string) => {
+    const parseAnime = async (url: string) => {
         const cookie = await ipcRenderer.invoke("get-cookie")
-        const html = await fetch(link, {headers: {cookie}}).then((r) => r.text())
+        if (url.endsWith("/")) url = url.slice(0, -1)
+        const html = await fetch(url, {headers: {cookie}}).then((r) => r.text())
         const match = html.match(/(?<=<div class="show-actions" group_id=")(.*?)(?=")/)?.[0]
-        return match ? match : link
+        return match ? match : url
     }
 
-    const parsePlaylist = async (episode: CrunchyrollEpisode) => {
+    const parseEpisode = async (url: string) => {
         const cookie = await ipcRenderer.invoke("get-cookie")
-        const html = await fetch(episode.url, {headers: {cookie}}).then((r) => r.text())
+        if (url.endsWith("/")) url = url.slice(0, -1)
+        const html = await fetch(`${url}?skip_wall=1`, {headers: {cookie}}).then((r) => r.text())
+        let vilos = null
+        try {
+            vilos = JSON.parse(html.match(/(?<=vilos.config.media = )(.*?)(?=;)/)?.[0] ?? "")
+        } catch {
+            return null
+        }
+        const seasonTitle = html.match(/(?<=<title>)(.*?)(?= Episode)/i)?.[0]
+        const episode = {...vilos.metadata, url, name: vilos.metadata.title, collection_name: seasonTitle, screenshot_image: {large_url: vilos.thumbnail.url}, bif_url: vilos.preview.src}
+        return episode
+    }
+
+    const parseEpisodes = async (url: string) => {
+        const cookie = await ipcRenderer.invoke("get-cookie")
+        if (url.endsWith("/")) url = url.slice(0, -1)
+        const html = await fetch(`${url}?skip_wall=1`, {headers: {cookie}}).then((r) => r.text())
+        let urls = html.match(/(episode)(.*?)(?=" title)/gm)
+        if (!urls) return ipcRenderer.invoke("download-error", "search")
+        urls = urls.map((u) => `${url}/${u}`)
+        let episodes = await Promise.all(urls.map((u) => parseEpisode(u)))
+        return episodes
+    }
+
+    const parsePlaylist = async (url: string, noSub?: boolean) => {
+        const cookie = await ipcRenderer.invoke("get-cookie")
+        if (url.endsWith("/")) url = url.slice(0, -1)
+        const html = await fetch(`${url}?skip_wall=1`, {headers: {cookie}}).then((r) => r.text())
         const vilos = JSON.parse(html.match(/(?<=vilos.config.media = )(.*?)(?=;)/)?.[0] ?? "")
         const hls = vilos?.streams.filter((s: any) => s.format === "adaptive_hls" || s.format === "trailer_hls")
         let audioLang = type === "sub" ? "jaJP" : language
-        let subLang = type === "dub" ? null : language
-        let stream = hls.find((s: any) => s.audio_lang === audioLang && s.hardsub_lang === subLang)
-        if (!stream && language === "esLA") stream = hls.find((s: any) => s.audio_lang === "esES" && s.hardsub_lang === subLang)
-        if (!stream && language === "ptBR") stream = hls.find((s: any) => s.audio_lang === "ptPT" && s.hardsub_lang === subLang)
-        if (!stream) {
-            ipcRenderer.invoke("download-error", "search")
-            return null
-        }
+        let subLang = type === "dub" || noSub ? null : language
+        let stream = hls?.find((s: any) => s.audio_lang === audioLang && s.hardsub_lang === subLang)
+        if (!stream && language === "esLA") stream = hls?.find((s: any) => s.audio_lang === "esES" && s.hardsub_lang === subLang)
+        if (!stream && language === "ptBR") stream = hls?.find((s: any) => s.audio_lang === "ptPT" && s.hardsub_lang === subLang)
+        if (!stream) return null
         return stream.url
     }
 
-    const parseSubtitles = async (info: {id: number, episode: CrunchyrollEpisode, dest: string, kind: string}) => {
+    const parseSubtitles = async (info: {id: number, episode: CrunchyrollEpisode, dest: string, kind: string}, error?: boolean, noDL?: boolean) => {
         const cookie = await ipcRenderer.invoke("get-cookie")
         const html = await fetch(info.episode.url, {headers: {cookie}}).then((r) => r.text())
         const vilos = JSON.parse(html.match(/(?<=vilos.config.media = )(.*?)(?=;)/)?.[0] ?? "")
         let subtitles = vilos?.subtitles.filter((s: any) => s.language === language)
         if (!subtitles && language === "esLA") subtitles = vilos?.subtitles.filter((s: any) => s.language === "esES")
         if (!subtitles && language === "ptBR") subtitles = vilos?.subtitles.filter((s: any) => s.language === "ptPT")
-        if (!subtitles) return ipcRenderer.invoke("download-error", "subtitles")
-        ipcRenderer.invoke("download-subtitles", {url: subtitles[0].url, dest: info.dest, id: info.id, episode: info.episode, kind: info.kind})
+        if (!subtitles) return error ? ipcRenderer.invoke("download-error", "search") : null
+        if (!noDL) ipcRenderer.invoke("download-subtitles", {url: subtitles[0].url, dest: info.dest, id: info.id, episode: info.episode, kind: info.kind})
+        return subtitles[0].url
     }
 
     const getKind = () => {
@@ -87,45 +113,68 @@ const SearchBar: React.FunctionComponent = (props) => {
       
     const download = async (searchText: string) => {
         if (!searchText) return
-        if (searchText.startsWith("http") && !/\d{5,}/.test(searchText)) searchText = await parseAnime(searchText)
         let opts = {resolution: Number(quality), language} as any
         if (type === "sub") opts.preferSub = true
         if (type === "dub") {
             opts.preferSub = false
             opts.preferDub = true
         }
-        console.log(type)
         if (format === "mp3") opts.audioOnly = true
         if (format === "m3u8") opts.skipConversion = true
         if (format === "png") opts.thumbnails = true
-        if (format === "txt") opts.subtitles = true
+        if (format === "ass") opts.subtitles = true
+        if (format === "mkv") opts.softSubs = true
         opts.kind = getKind()
-        const episode = await ipcRenderer.invoke("get-episode", searchText, opts)
+        let episode = await ipcRenderer.invoke("get-episode", searchText, opts)
         if (!episode) {
-            const episodes = await ipcRenderer.invoke("get-episodes", searchText, opts)
-            console.log(episodes)
-            if (!episodes) return
+            let episodes = await ipcRenderer.invoke("get-episodes", searchText, opts)
+            if (!episodes) {
+                if (/crunchyroll.com/.test(searchText)) {
+                    episodes = await parseEpisodes(searchText)
+                } else {
+                    return ipcRenderer.invoke("download-error", "search")
+                }
+            }
             let current = id
+            let downloaded = false
             for (let i = 0; i < episodes.length; i++) {
                 if (opts.subtitles) {
-                    parseSubtitles({id: current, episode: episodes[i], dest: directory.replace(/\\+/g, "/"), kind: opts.kind})
+                    const subtitles = await parseSubtitles({id: current, episode: episodes[i], dest: directory.replace(/\\+/g, "/"), kind: opts.kind})
+                    if (subtitles) downloaded = true
+                } else if (opts.softSubs) {
+                    const subtitles = await parseSubtitles({id: current, episode: episodes[i], dest: directory.replace(/\\+/g, "/"), kind: opts.kind}, false, true)
+                    const playlist = await parsePlaylist(episodes[i].url, true)
+                    if (!playlist || !subtitles) continue
+                    downloaded = true
+                    ipcRenderer.invoke("download", {id: current, episode: episodes[i], dest: directory.replace(/\\+/g, "/"), playlist, subtitles, ...opts})
                 } else {
-                    const playlist = await parsePlaylist(episodes[i])
+                    const playlist = await parsePlaylist(episodes[i].url)
                     if (!playlist) continue
+                    downloaded = true
                     ipcRenderer.invoke("download", {id: current, episode: episodes[i], dest: directory.replace(/\\+/g, "/"), playlist, ...opts})
-                }
-            current += 1
-            setID(prev => prev + 1)
+                    }
+                current += 1
+                setID(prev => prev + 1)
             }
+            if (!downloaded) return ipcRenderer.invoke("download-error", "search")
         } else {
             if (opts.subtitles) {
                 setID((prev) => {
-                    parseSubtitles({id: prev, episode, dest: directory.replace(/\\+/g, "/"), kind: opts.kind})
+                    parseSubtitles({id: prev, episode, dest: directory.replace(/\\+/g, "/"), kind: opts.kind}, true)
                     return prev + 1
                 })
+            } else if (opts.softSubs) {
+                    const subtitles = await parseSubtitles({id: 0, episode, dest: directory.replace(/\\+/g, "/"), kind: opts.kind}, false, true)
+                    const playlist = await parsePlaylist(episode.url, true)
+                    if (!playlist || !subtitles) return ipcRenderer.invoke("download-error", "search")
+                    setID((prev) => {
+                        ipcRenderer.invoke("download", {id: prev, episode, dest: directory.replace(/\\+/g, "/"), playlist, subtitles, ...opts})
+                        return prev + 1
+                    })
             } else {
-                const playlist = await parsePlaylist(episode)
-                if (!playlist) return
+                if (!episode.url) episode = await parseEpisode(episode)
+                const playlist = await parsePlaylist(episode.url)
+                if (!playlist) return ipcRenderer.invoke("download-error", "search")
                 setID((prev) => {
                     ipcRenderer.invoke("download", {id: prev, episode, dest: directory.replace(/\\+/g, "/"), playlist, ...opts})
                     return prev + 1
@@ -158,7 +207,7 @@ const SearchBar: React.FunctionComponent = (props) => {
                     <p className="dropdown-label">Type: </p>
                     <DropdownButton title={type} drop="down">
                         <Dropdown.Item active={type === "sub"} onClick={() => {setType("sub"); if (language === "jaJP") setLanguage("enUS")}}>sub</Dropdown.Item>
-                        <Dropdown.Item active={type === "dub"} onClick={() => {setType("dub"); if (format === "txt") setFormat("mp4")}}>dub</Dropdown.Item>
+                        <Dropdown.Item active={type === "dub"} onClick={() => {setType("dub"); if (format === "ass") setFormat("mp4")}}>dub</Dropdown.Item>
                     </DropdownButton>
                 </div>
                 <div className="dropdown-container">
@@ -178,9 +227,10 @@ const SearchBar: React.FunctionComponent = (props) => {
                     <p className="dropdown-label">Format: </p>
                     <DropdownButton title={format} drop="down">
                         <Dropdown.Item active={format === "mp4"} onClick={() => setFormat("mp4")}>mp4</Dropdown.Item>
+                        <Dropdown.Item active={format === "mkv"} onClick={() => setFormat("mkv")}>mkv</Dropdown.Item>
                         <Dropdown.Item active={format === "mp3"} onClick={() => setFormat("mp3")}>mp3</Dropdown.Item>
                         <Dropdown.Item active={format === "m3u8"} onClick={() => setFormat("m3u8")}>m3u8</Dropdown.Item>
-                        {type === "sub" ? <Dropdown.Item active={format === "txt"} onClick={() => setFormat("txt")}>txt</Dropdown.Item> : null}
+                        {type === "sub" ? <Dropdown.Item active={format === "ass"} onClick={() => setFormat("ass")}>ass</Dropdown.Item> : null}
                         <Dropdown.Item active={format === "png"} onClick={() => setFormat("png")}>png</Dropdown.Item>
                     </DropdownButton>
                 </div>

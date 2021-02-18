@@ -6,12 +6,14 @@ This is a cute GUI application that lets you download anime episodes from Crunch
 
 ### Features:
 - Download anime episodes in mp4 format, and specify a quality (1080p, 720p, 480p, etc.)
-- Download just the audio of an episode in mp3 format
+- Download episodes with soft subtitles in mkv format
+- Download the audio of an episode in mp3 format
 - Download the m3u8 playlist (very fast, and still playable with the VLC player)
 - Download all of the episode thumbnails in png format
-- Download the subtitles of an episode (as a text file)
+- Download the subtitles of an episode (ass format)
 - Download all of the episodes in a season (detected by the link or if the search query has no numbers)
 - If you have a premium account you can login to download premium episodes
+- Use the web browser to download directly from the website
 - Control the conversion process (pause, resume, stop, delete, etc.)
 
 ### Installation
