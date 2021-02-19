@@ -1,4 +1,3 @@
-  
 import {ipcRenderer} from "electron"
 import React, {useContext, useState} from "react"
 import clearAllButtonHover from "../assets/clearAll-hover.png"
