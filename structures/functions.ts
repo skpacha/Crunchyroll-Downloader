@@ -52,6 +52,7 @@ export default class functions {
         if (locale === "ruRU") return "Russian"
         if (locale === "ptBR") return "Portuguese"
         if (locale === "ptPT") return "Portuguese"
+        if (locale === "arME") return "Arabic"
         if (locale.toLowerCase() === "japanese") return "jaJP"
         if (locale.toLowerCase() === "english") return "enUS"
         if (locale.toLowerCase() === "spanish") return "esES"
@@ -60,6 +61,7 @@ export default class functions {
         if (locale.toLowerCase() === "italian") return "itIT"
         if (locale.toLowerCase() === "russian") return "ruRU"
         if (locale.toLowerCase() === "portuguese") return "ptPT"
+        if (locale.toLowerCase() === "arabic") return "arME"
         return "None"
     }
 

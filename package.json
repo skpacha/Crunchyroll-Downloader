@@ -1,7 +1,7 @@
 {
   "name": "crunchyroll-downloader",
-  "version": "0.1.2",
-  "description": "A cute gui application that downloads anime episodes from crunchyroll",
+  "version": "0.1.3",
+  "description": "A gui application that downloads anime episodes from crunchyroll",
   "main": "dist/main.js",
   "scripts": {
     "start": "npm run clean && webpack && electron dist/main.js",

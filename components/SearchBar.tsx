@@ -138,6 +138,7 @@ const SearchBar: React.FunctionComponent = (props) => {
             let current = id
             let downloaded = false
             for (let i = 0; i < episodes.length; i++) {
+                await functions.timeout(100)
                 if (opts.subtitles) {
                     const subtitles = await parseSubtitles({id: current, episode: episodes[i], dest: directory.replace(/\\+/g, "/"), kind: opts.kind})
                     if (subtitles) downloaded = true
@@ -221,6 +222,7 @@ const SearchBar: React.FunctionComponent = (props) => {
                         <Dropdown.Item active={language === "deDE"} onClick={() => setLanguage("deDE")}>German</Dropdown.Item>
                         <Dropdown.Item active={language === "ruRU"} onClick={() => setLanguage("ruRU")}>Russian</Dropdown.Item>
                         <Dropdown.Item active={language === "ptBR"} onClick={() => setLanguage("ptBR")}>Portuguese</Dropdown.Item>
+                        <Dropdown.Item active={language === "arME"} onClick={() => setLanguage("arME")}>Arabic</Dropdown.Item>
                     </DropdownButton>
                 </div>
                 <div className="dropdown-container">

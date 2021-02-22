@@ -68,7 +68,7 @@ const TitleBar: React.FunctionComponent = (props) => {
                         <p><span className="title">Crunchyroll Downloader v{pack.version}</span></p>
                     </div>
                     <div className="title-bar-buttons">
-                        <img src={hoverWeb ? webButtonHover : webButton} height="20" width="20" className="title-bar-button" onClick={web} onMouseEnter={() => setHoverWeb(true)} onMouseLeave={() => setHoverWeb(false)}/>
+                        <img src={hoverWeb ? loginButtonHover : loginButton} height="20" width="20" className="title-bar-button" onClick={web} onMouseEnter={() => setHoverWeb(true)} onMouseLeave={() => setHoverWeb(false)}/>
                         {/*<img src={hoverLogin ? loginButtonHover : loginButton} height="20" width="20" className="title-bar-button" onClick={login} onMouseEnter={() => setHoverLogin(true)} onMouseLeave={() => setHoverLogin(false)}/>*/}
                         <img src={hoverStar ? starButtonHover : starButton} height="20" width="20" className="title-bar-button star-button" onClick={star} onMouseEnter={() => setHoverStar(true)} onMouseLeave={() => setHoverStar(false)}/>
                         <img src={hoverReload ? reloadButtonHover : reloadButton} height="20" width="20" className="title-bar-button reload-button" onClick={reload} onMouseEnter={() => setHoverReload(true)} onMouseLeave={() => setHoverReload(false)}/>

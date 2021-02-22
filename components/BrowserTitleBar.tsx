@@ -16,6 +16,8 @@ import downloadButton from "../assets/downloadButton.png"
 import downloadButtonHover from "../assets/downloadButton-hover.png"
 import externalButton from "../assets/externalButton.png"
 import externalButtonHover from "../assets/externalButton-hover.png"
+import refreshButton from "../assets/refreshButton.png"
+import refreshButtonHover from "../assets/refreshButton-hover.png"
 import "../styles/browsertitlebar.less"
 
 const BrowserTitleBar: React.FunctionComponent = (props) => {
@@ -27,6 +29,7 @@ const BrowserTitleBar: React.FunctionComponent = (props) => {
     let [hoverForward, setHoverForward] = useState(false)
     let [hoverDownload, setHoverDownload] = useState(false)
     let [hoverExternal, setHoverExternal] = useState(false)
+    let [hoverRefresh, setHoverRefresh] = useState(false)
 
     useEffect(() => {
         const openURL = (event: any, url: string) => {
@@ -85,6 +88,11 @@ const BrowserTitleBar: React.FunctionComponent = (props) => {
         remote.shell.openExternal(web.getURL())
     }
 
+    const refresh = () => {
+        const web = document.getElementById("webview") as any
+        web.reload()
+    }
+
     return (
         <section className="title-bar">
                 <div className="title-bar-drag-area">
@@ -92,6 +100,7 @@ const BrowserTitleBar: React.FunctionComponent = (props) => {
                         <img height="20" width="20" src={hoverHome ? homeButtonHover : homeButton} className="title-bar-button" onClick={home} onMouseEnter={() => setHoverHome(true)} onMouseLeave={() => setHoverHome(false)}/>
                         <img height="20" width="20" src={hoverBack ? backButtonHover : backButton} className="title-bar-button" onClick={back} onMouseEnter={() => setHoverBack(true)} onMouseLeave={() => setHoverBack(false)}/>
                         <img height="20" width="20" src={hoverForward ? forwardButtonHover : forwardButton} className="title-bar-button" onClick={forward} onMouseEnter={() => setHoverForward(true)} onMouseLeave={() => setHoverForward(false)}/>
+                        <img height="20" width="20" src={hoverRefresh ? refreshButtonHover : refreshButton} className="title-bar-button" onClick={refresh} onMouseEnter={() => setHoverRefresh(true)} onMouseLeave={() => setHoverRefresh(false)}/>
                     </div>
                     <div className="title-bar-buttons">
                         <img src={hoverExternal ? externalButtonHover : externalButton} height="20" width="20" className="title-bar-button" onClick={external} onMouseEnter={() => setHoverExternal(true)} onMouseLeave={() => setHoverExternal(false)}/>

@@ -2,7 +2,7 @@
 
 <img src="assets/example.png">
 
-This is a cute GUI application that lets you download anime episodes from Crunchyroll.
+This is a GUI application that lets you download anime episodes from Crunchyroll.
 
 ### Features:
 - Download anime episodes in mp4 format, and specify a quality (1080p, 720p, 480p, etc.)
