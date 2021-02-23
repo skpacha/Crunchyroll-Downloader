@@ -13,9 +13,13 @@ import "./index.less"
 import functions from "./structures/functions"
 
 export const ClearAllContext = React.createContext<any>(null)
+export const DeleteAllContext = React.createContext<any>(null)
+export const StopAllContext = React.createContext<any>(null)
 
 const App: React.FunctionComponent = () => {
   const [clearAll, setClearAll] = useState(false)
+  const [deleteAll, setDeleteAll] = useState(false)
+  const [stopAll, setStopAll] = useState(false)
 
   useEffect(() => {
     ipcRenderer.on("debug", console.log)
@@ -27,6 +31,8 @@ const App: React.FunctionComponent = () => {
   }, [])
 
   return (
+    <StopAllContext.Provider value={{stopAll, setStopAll}}>
+    <DeleteAllContext.Provider value={{deleteAll, setDeleteAll}}>
     <ClearAllContext.Provider value={{clearAll, setClearAll}}>
     <main className="app">
       <TitleBar/>
@@ -38,6 +44,8 @@ const App: React.FunctionComponent = () => {
       <EpisodeContainerList/>
     </main>
     </ClearAllContext.Provider>
+    </DeleteAllContext.Provider>
+    </StopAllContext.Provider>
   )
 }
 

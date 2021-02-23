@@ -51,6 +51,9 @@ const EpisodeContainer: React.FunctionComponent<EpisodeContainerProps> = (props:
     const [progressColor, setProgressColor] = useState("")
     const [backgroundColor, setBackgroundColor] = useState("")
     const [clearSignal, setClearSignal] = useState(false)
+    const [stopSignal, setStopSignal] = useState(false)
+    const [deleteSignal, setDeleteSignal] = useState(false)
+    const [skipped, setSkipped] = useState(false)
     const progressBarRef = useRef(null) as React.RefObject<HTMLDivElement>
     const episodeContainerRef = useRef(null) as React.RefObject<HTMLElement>
     
@@ -62,21 +65,32 @@ const EpisodeContainer: React.FunctionComponent<EpisodeContainerProps> = (props:
                 setTime(`${functions.formatMS(info.progress.time)} / ${functions.formatMS(info.progress.duration)}`)
             }
         }
-        const downloadEnded = (event: any, info: {id: number, output: string}) => {
+        const downloadEnded = (event: any, info: {id: number, output: string, skipped?: boolean}) => {
             if (info.id === props.id) {
                 setOutput(info.output)
+                if (info.skipped) setSkipped(true)
             }
         }
         const clearAll = () => {
             setClearSignal(true)
         }
+        const stopAll = () => {
+            setStopSignal(true)
+        }
+        const deleteAll = () => {
+            setDeleteSignal(true)
+        }
         ipcRenderer.on("download-progress", downloadProgress)
         ipcRenderer.on("download-ended", downloadEnded)
         ipcRenderer.on("clear-all", clearAll)
+        ipcRenderer.on("stop-all", stopAll)
+        ipcRenderer.on("delete-all", deleteAll)
         return () => {
             ipcRenderer.removeListener("download-progress", downloadProgress)
             ipcRenderer.removeListener("download-ended", downloadEnded)
             ipcRenderer.removeListener("clear-all", clearAll)
+            ipcRenderer.removeListener("stop-all", stopAll)
+            ipcRenderer.removeListener("delete-all", deleteAll)
         }
     }, [])
 
@@ -84,9 +98,12 @@ const EpisodeContainer: React.FunctionComponent<EpisodeContainerProps> = (props:
         updateProgressColor()
         updateBackgroundColor()
         if (clearSignal) closeDownload()
+        if (stopSignal) stopDownload()
+        if (deleteSignal) deleteDownload()
     })
 
     const deleteDownload = async () => {
+        if (deleted) return
         const success = await ipcRenderer.invoke("delete-download", props.id)
         if (success) setDeleted(true)
     }
@@ -97,6 +114,7 @@ const EpisodeContainer: React.FunctionComponent<EpisodeContainerProps> = (props:
     }
     
     const stopDownload = async () => {
+        if (stopped) return
         if (progress < 0 || progress >= 99) return
         const success = await ipcRenderer.invoke("stop-download", props.id)
         if (success) setStopped(true)
@@ -144,6 +162,7 @@ const EpisodeContainer: React.FunctionComponent<EpisodeContainerProps> = (props:
         } else {
             if (progressColor === "#ff2ba7") setProgressColor(colors[Math.floor(Math.random() * colors.length)])
             if (output) setProgressColor("#2bff64")
+            if (skipped) setProgressColor("#ff40d9")
             if (stopped) setProgressColor("#ff2441")
             if (deleted) setProgressColor("#8c21ff")
         }
@@ -159,6 +178,10 @@ const EpisodeContainer: React.FunctionComponent<EpisodeContainerProps> = (props:
         } else {
             if (output) {
                 jsx = <p className="ep-text-progress black">Finished</p>
+                progressJSX = <ProgressBar ref={progressBarRef} animated now={100}/>
+            }
+            if (skipped) {
+                jsx = <p className="ep-text-progress black">Skipped</p>
                 progressJSX = <ProgressBar ref={progressBarRef} animated now={100}/>
             }
             if (stopped) {

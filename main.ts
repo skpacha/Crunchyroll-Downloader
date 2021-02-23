@@ -22,6 +22,14 @@ const store = new Store()
 
 const active: Array<{id: number, dest: string, action: null | "pause" | "stop" | "kill", resume?: () => boolean}> = []
 
+ipcMain.handle("delete-all", () => {
+  window?.webContents.send("delete-all")
+})
+
+ipcMain.handle("stop-all", () => {
+  window?.webContents.send("stop-all")
+})
+
 ipcMain.handle("clear-all", () => {
   window?.webContents.send("clear-all")
 })
@@ -234,6 +242,20 @@ const downloadEpisode = async (info: any, episode: CrunchyrollEpisode) => {
   }
   active.push({id: info.id, dest, action: null})
   window?.webContents.send("download-started", {id: info.id, kind: info.kind, episode, format})
+  await functions.timeout(100)
+  if (fs.existsSync(dest)) {
+    if (fs.statSync(dest).isDirectory()) {
+      const files = fs.readdirSync(dest)
+      if (files.length) return window?.webContents.send("download-ended", {id: info.id, output: dest, skipped: true})
+    } else {
+      if (info.skipConversion) return window?.webContents.send("download-ended", {id: info.id, output: dest, skipped: true})
+      const duration1 = await crunchyroll.util.parseDuration(dest, ffmpegPath)
+      const duration2 = await crunchyroll.util.parseDuration(info.playlist, ffmpegPath)
+      if (Math.round(duration1) === Math.round(duration2)) {
+        return window?.webContents.send("download-ended", {id: info.id, output: dest, skipped: true})
+      }
+    }
+  }
   info.ffmpegPath = ffmpegPath
   info.ffprobePath = ffprobePath
   let output = ""
@@ -253,6 +275,10 @@ ipcMain.handle("download-subtitles", async (event, info) => {
   let output = `${info.dest}/${info.episode.collection_name.replace(/-/g, " ").replace(/:/g, " ")} ${info.episode.episode_number}.ass`
   active.push({id: info.id, dest: output, action: null})
   window?.webContents.send("download-started", {id: info.id, episode: info.episode, format: "ass", kind: info.kind})
+  await functions.timeout(100)
+  if (fs.existsSync(output)) {
+    return window?.webContents.send("download-ended", {id: info.id, output, skipped: true})
+  }
   const data = await axios.get(info.url).then((r) => r.data)
   fs.writeFileSync(output, data)
   window?.webContents.send("download-ended", {id: info.id, output})

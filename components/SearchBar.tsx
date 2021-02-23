@@ -96,7 +96,7 @@ const SearchBar: React.FunctionComponent = (props) => {
         let subtitles = vilos?.subtitles.filter((s: any) => s.language === language)
         if (!subtitles && language === "esLA") subtitles = vilos?.subtitles.filter((s: any) => s.language === "esES")
         if (!subtitles && language === "ptBR") subtitles = vilos?.subtitles.filter((s: any) => s.language === "ptPT")
-        if (!subtitles) return error ? ipcRenderer.invoke("download-error", "search") : null
+        if (!subtitles?.[0]) return error ? ipcRenderer.invoke("download-error", "search") : null
         if (!noDL) ipcRenderer.invoke("download-subtitles", {url: subtitles[0].url, dest: info.dest, id: info.id, episode: info.episode, kind: info.kind})
         return subtitles[0].url
     }
@@ -159,6 +159,7 @@ const SearchBar: React.FunctionComponent = (props) => {
             }
             if (!downloaded) return ipcRenderer.invoke("download-error", "search")
         } else {
+            if (!episode.url) episode = await parseEpisode(episode)
             if (opts.subtitles) {
                 setID((prev) => {
                     parseSubtitles({id: prev, episode, dest: directory.replace(/\\+/g, "/"), kind: opts.kind}, true)
@@ -173,7 +174,6 @@ const SearchBar: React.FunctionComponent = (props) => {
                         return prev + 1
                     })
             } else {
-                if (!episode.url) episode = await parseEpisode(episode)
                 const playlist = await parsePlaylist(episode.url)
                 if (!playlist) return ipcRenderer.invoke("download-error", "search")
                 setID((prev) => {
