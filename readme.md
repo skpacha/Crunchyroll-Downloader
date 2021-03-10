@@ -20,10 +20,10 @@ This is a GUI application that lets you download anime episodes from Crunchyroll
 
 You can specify a custom output path. The default is `{seasonTitle} {episodeNumber}`. Adding slashes will create sub-folders, ex. `{seriesTitle}/{seasonTitle}/{episodeTitle}`. These are the available replacements:
 
-{seasonTitle} - The title of the season
-{episodeTitle} - The title of the episode
-{seriesTitle} - The title of the series (ex. The series of SAO II is "Sword Art Online")
-{episodeNumber} - The number of the episode
+{seasonTitle} - The title of the season \
+{episodeTitle} - The title of the episode \
+{seriesTitle} - The title of the series (ex. The series of SAO II is "Sword Art Online") \
+{episodeNumber} - The number of the episode \
 {resolution} - The resolution, excluding the "p". Only available for video formats.
 
 ### Installation
