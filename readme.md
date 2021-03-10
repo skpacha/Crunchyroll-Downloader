@@ -16,6 +16,16 @@ This is a GUI application that lets you download anime episodes from Crunchyroll
 - Use the web browser to download directly from the website
 - Control the conversion process (pause, resume, stop, delete, etc.)
 
+### Output Template
+
+You can specify a custom output path. The default is `{seasonTitle} {episodeNumber}`. Adding slashes will create sub-folders, ex. `{seriesTitle}/{seasonTitle}/{episodeTitle}`. These are the available replacements:
+
+{seasonTitle} - The title of the season
+{episodeTitle} - The title of the episode
+{seriesTitle} - The title of the series (ex. The series of SAO II is "Sword Art Online")
+{episodeNumber} - The number of the episode
+{resolution} - The resolution, excluding the "p". Only available for video formats.
+
 ### Installation
 
 Download the latest exe installer from the [releases](https://github.com/Tenpi/Crunchyroll-Downloader/releases) tab. You may get a warning message along the lines of "running this app can harm your PC", but don't worry because it's safe. Updates are able to be installed automatically.

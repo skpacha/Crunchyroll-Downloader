@@ -14,6 +14,8 @@ import loginButton from "../assets/loginButton.png"
 import loginButtonHover from "../assets/loginButton-hover.png"
 import webButton from "../assets/webButton.png"
 import webButtonHover from "../assets/webButton-hover.png"
+import settingsButtonHover from "../assets/settingsButton-hover.png"
+import settingsButton from "../assets/settingsButton.png"
 import appIcon from "../assets/icon.png"
 import pack from "../package.json"
 import "../styles/titlebar.less"
@@ -26,6 +28,7 @@ const TitleBar: React.FunctionComponent = (props) => {
     let [hoverStar, setHoverStar] = useState(false)
     let [hoverLogin, setHoverLogin] = useState(false)
     let [hoverWeb, setHoverWeb] = useState(false)
+    let [hoverSettings, setHoverSettings] = useState(false)
     
     useEffect(() => {
         ipcRenderer.invoke("check-for-updates", true)
@@ -60,6 +63,11 @@ const TitleBar: React.FunctionComponent = (props) => {
         ipcRenderer.invoke("open-website")
     }
 
+    
+    const settings = () => {
+        ipcRenderer.invoke("advanced-settings")
+    }
+
     return (
         <section className="title-bar">
                 <div className="title-bar-drag-area">
@@ -68,6 +76,7 @@ const TitleBar: React.FunctionComponent = (props) => {
                         <p><span className="title">Crunchyroll Downloader v{pack.version}</span></p>
                     </div>
                     <div className="title-bar-buttons">
+                        <img src={hoverSettings ? settingsButtonHover : settingsButton} height="20" width="20" className="title-bar-button settings-button" onClick={settings} onMouseEnter={() => setHoverSettings(true)} onMouseLeave={() => setHoverSettings(false)}/>
                         <img src={hoverWeb ? loginButtonHover : loginButton} height="20" width="20" className="title-bar-button" onClick={web} onMouseEnter={() => setHoverWeb(true)} onMouseLeave={() => setHoverWeb(false)}/>
                         {/*<img src={hoverLogin ? loginButtonHover : loginButton} height="20" width="20" className="title-bar-button" onClick={login} onMouseEnter={() => setHoverLogin(true)} onMouseLeave={() => setHoverLogin(false)}/>*/}
                         <img src={hoverStar ? starButtonHover : starButton} height="20" width="20" className="title-bar-button star-button" onClick={star} onMouseEnter={() => setHoverStar(true)} onMouseLeave={() => setHoverStar(false)}/>

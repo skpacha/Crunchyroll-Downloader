@@ -14,13 +14,25 @@ process.setMaxListeners(0)
 let window: Electron.BrowserWindow | null
 let website: Electron.BrowserWindow | null
 let ffmpegPath = path.join(app.getAppPath(), "../../ffmpeg/ffmpeg.exe") as any
-let ffprobePath = path.join(app.getAppPath(), "../../ffmpeg/ffprobe.exe") as any
 if (!fs.existsSync(ffmpegPath)) ffmpegPath = undefined
-if (!fs.existsSync(ffprobePath)) ffprobePath = undefined
 autoUpdater.autoDownload = false
 const store = new Store()
 
 const active: Array<{id: number, dest: string, action: null | "pause" | "stop" | "kill", resume?: () => boolean}> = []
+
+ipcMain.handle("init-settings", () => {
+  return store.get("settings", null)
+})
+
+ipcMain.handle("store-settings", (event, settings) => {
+  const prev = store.get("settings", {}) as object
+  store.set("settings", {...prev, ...settings})
+})
+
+ipcMain.handle("advanced-settings", () => {
+  window?.webContents.send("close-all-dialogs", "settings")
+  window?.webContents.send("show-settings-dialog")
+})
 
 ipcMain.handle("delete-all", () => {
   window?.webContents.send("delete-all")
@@ -227,7 +239,7 @@ const downloadEpisode = async (info: any, episode: CrunchyrollEpisode) => {
   if (info.audioOnly) format = "mp3"
   if (info.skipConversion) format = "m3u8"
   if (info.thumbnails) format = "png"
-  let dest = crunchyroll.util.parseDest(episode, format, info.dest)
+  let dest = crunchyroll.util.parseDest(episode, format, info.dest, info.template, info.playlist)
   const videoProgress = (progress: FFmpegProgress, resume: () => boolean) => {
     window?.webContents.send("download-progress", {id: info.id, progress})
     let index = active.findIndex((e) => e.id === info.id)
@@ -257,7 +269,6 @@ const downloadEpisode = async (info: any, episode: CrunchyrollEpisode) => {
     }
   }
   info.ffmpegPath = ffmpegPath
-  info.ffprobePath = ffprobePath
   let output = ""
   if (info.thumbnails) {
     output = await crunchyroll.util.downloadThumbnails(episode, info.dest, info)
@@ -272,7 +283,9 @@ const downloadEpisode = async (info: any, episode: CrunchyrollEpisode) => {
 }
 
 ipcMain.handle("download-subtitles", async (event, info) => {
-  let output = `${info.dest}/${info.episode.collection_name.replace(/-/g, " ").replace(/:/g, " ")} ${info.episode.episode_number}.ass`
+  let output = crunchyroll.util.parseDest(info.episode, "ass", info.dest, info.template)
+  const folder = path.dirname(output)
+  if (!fs.existsSync(folder)) fs.mkdirSync(folder, {recursive: true})
   active.push({id: info.id, dest: output, action: null})
   window?.webContents.send("download-started", {id: info.id, episode: info.episode, format: "ass", kind: info.kind})
   await functions.timeout(100)
@@ -289,7 +302,8 @@ ipcMain.handle("download-error", async (event, info) => {
 })
 
 ipcMain.handle("download", async (event, info) => {
-  await downloadEpisode(info, info.episode).catch((err) => {
+  await downloadEpisode(info, info.episode).catch((err: Error) => {
+    console.error(err)
     window?.webContents.send("download-error", "download")
   })
 })

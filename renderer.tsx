@@ -7,6 +7,7 @@ import {ipcRenderer} from "electron"
 import GroupAction from "./components/GroupAction"
 import VersionDialog from "./components/VersionDialog"
 import LoginDialog from "./components/LoginDialog"
+import AdvancedSettings from "./components/AdvancedSettings"
 import EpisodeContainerList from "./components/EpisodeContainerList"
 import "bootstrap/dist/css/bootstrap.min.css";
 import "./index.less"
@@ -16,10 +17,16 @@ export const ClearAllContext = React.createContext<any>(null)
 export const DeleteAllContext = React.createContext<any>(null)
 export const StopAllContext = React.createContext<any>(null)
 
+
+export const VideoQualityContext = React.createContext<any>(null)
+export const TemplateContext = React.createContext<any>(null)
+
 const App: React.FunctionComponent = () => {
   const [clearAll, setClearAll] = useState(false)
   const [deleteAll, setDeleteAll] = useState(false)
   const [stopAll, setStopAll] = useState(false)
+  const [videoQuality, setVideoQuality] = useState(16)
+  const [template, setTemplate] = useState("{seasonTitle} {episodeNumber}")
 
   useEffect(() => {
     ipcRenderer.on("debug", console.log)
@@ -31,6 +38,8 @@ const App: React.FunctionComponent = () => {
   }, [])
 
   return (
+    <VideoQualityContext.Provider value={{videoQuality, setVideoQuality}}>
+    <TemplateContext.Provider value={{template, setTemplate}}>
     <StopAllContext.Provider value={{stopAll, setStopAll}}>
     <DeleteAllContext.Provider value={{deleteAll, setDeleteAll}}>
     <ClearAllContext.Provider value={{clearAll, setClearAll}}>
@@ -38,6 +47,7 @@ const App: React.FunctionComponent = () => {
       <TitleBar/>
       <VersionDialog/>
       <LoginDialog/>
+      <AdvancedSettings/>
       <LogoBar/>
       <SearchBar/>
       <GroupAction/>
@@ -46,6 +56,8 @@ const App: React.FunctionComponent = () => {
     </ClearAllContext.Provider>
     </DeleteAllContext.Provider>
     </StopAllContext.Provider>
+    </TemplateContext.Provider>
+    </VideoQualityContext.Provider>
   )
 }
 

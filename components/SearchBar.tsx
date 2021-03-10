@@ -1,5 +1,5 @@
 import {ipcRenderer} from "electron"
-import React, {useState, useEffect, useRef} from "react"
+import React, {useState, useEffect, useRef, useContext} from "react"
 import {Dropdown, DropdownButton} from "react-bootstrap"
 import folderButton from "../assets/folderButton.png"
 import searchButton from "../assets/searchButton.png"
@@ -9,8 +9,11 @@ import searchButtonHover from "../assets/searchButton-hover.png"
 import "../styles/searchbar.less"
 import {CrunchyrollEpisode} from "crunchyroll.ts"
 import functions from "../structures/functions"
+import {TemplateContext, VideoQualityContext} from "../renderer"
 
 const SearchBar: React.FunctionComponent = (props) => {
+    const {template} = useContext(TemplateContext)
+    const {videoQuality} = useContext(VideoQualityContext)
     const [id, setID] = useState(1)
     const [directory, setDirectory] = useState("")
     const [folderHover, setFolderHover] = useState(false)
@@ -97,7 +100,7 @@ const SearchBar: React.FunctionComponent = (props) => {
         if (!subtitles && language === "esLA") subtitles = vilos?.subtitles.filter((s: any) => s.language === "esES")
         if (!subtitles && language === "ptBR") subtitles = vilos?.subtitles.filter((s: any) => s.language === "ptPT")
         if (!subtitles?.[0]) return error ? ipcRenderer.invoke("download-error", "search") : null
-        if (!noDL) ipcRenderer.invoke("download-subtitles", {url: subtitles[0].url, dest: info.dest, id: info.id, episode: info.episode, kind: info.kind})
+        if (!noDL) ipcRenderer.invoke("download-subtitles", {url: subtitles[0].url, dest: info.dest, id: info.id, episode: info.episode, kind: info.kind, template})
         return subtitles[0].url
     }
 
@@ -113,7 +116,7 @@ const SearchBar: React.FunctionComponent = (props) => {
       
     const download = async (searchText: string) => {
         if (!searchText) return
-        let opts = {resolution: Number(quality), language} as any
+        let opts = {resolution: Number(quality), quality: videoQuality, language, template} as any
         if (type === "sub") opts.preferSub = true
         if (type === "dub") {
             opts.preferSub = false
