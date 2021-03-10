@@ -62,7 +62,8 @@ const SearchBar: React.FunctionComponent = (props) => {
             return null
         }
         const seasonTitle = html.match(/(?<=<title>)(.*?)(?= Episode)/i)?.[0]
-        const episode = {...vilos.metadata, url, name: vilos.metadata.title, collection_name: seasonTitle, screenshot_image: {large_url: vilos.thumbnail.url}, bif_url: vilos.preview.src}
+        const seriesTitle = html.match(/(?<=type="application\/rss\+xml" title=")(.*?)(?= Episodes)/)?.[0]
+        const episode = {...vilos.metadata, url, name: vilos.metadata.title, series_name: seriesTitle, collection_name: seasonTitle, screenshot_image: {large_url: vilos.thumbnail.url}, bif_url: vilos.preview.src}
         return episode
     }
 

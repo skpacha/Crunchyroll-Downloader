@@ -80,7 +80,7 @@
   "dependencies": {
     "axios": "^0.21.1",
     "bootstrap": "^4.6.0",
-    "crunchyroll.ts": "^0.2.9",
+    "crunchyroll.ts": "^0.3.0",
     "electron-store": "^7.0.1",
     "electron-updater": "^4.3.5",
     "ntsuspend": "^1.0.1",
