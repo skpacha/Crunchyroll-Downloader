@@ -82,7 +82,7 @@ const SearchBar: React.FunctionComponent = (props) => {
         const cookie = await ipcRenderer.invoke("get-cookie")
         if (url.endsWith("/")) url = url.slice(0, -1)
         const html = await fetch(`${url}?skip_wall=1`, {headers: {cookie}}).then((r) => r.text())
-        const vilos = JSON.parse(html.match(/(?<=vilos.config.media = )(.*?)(?=;)/)?.[0] ?? "")
+        const vilos = JSON.parse(html.match(/(?<=vilos.config.media = )(.*)}(?=;)/)?.[0] ?? "")
         const hls = vilos?.streams.filter((s: any) => s.format === "adaptive_hls" || s.format === "trailer_hls")
         let audioLang = type === "sub" ? "jaJP" : language
         let subLang = type === "dub" || noSub ? null : language
@@ -96,7 +96,7 @@ const SearchBar: React.FunctionComponent = (props) => {
     const parseSubtitles = async (info: {id: number, episode: CrunchyrollEpisode, dest: string, kind: string}, error?: boolean, noDL?: boolean) => {
         const cookie = await ipcRenderer.invoke("get-cookie")
         const html = await fetch(info.episode.url, {headers: {cookie}}).then((r) => r.text())
-        const vilos = JSON.parse(html.match(/(?<=vilos.config.media = )(.*?)(?=;)/)?.[0] ?? "")
+        const vilos = JSON.parse(html.match(/(?<=vilos.config.media = )(.*)}(?=;)/)?.[0] ?? "")
         let subtitles = vilos?.subtitles.filter((s: any) => s.language === language)
         if (!subtitles && language === "esLA") subtitles = vilos?.subtitles.filter((s: any) => s.language === "esES")
         if (!subtitles && language === "ptBR") subtitles = vilos?.subtitles.filter((s: any) => s.language === "ptPT")
