@@ -40,6 +40,20 @@ export default class functions {
         return str.startsWith("0") ? str.slice(1) : str
     }
 
+    public static stripLocale = (link: string) => {
+        return link
+        .replace("https://www.crunchyroll.com/en-gb", "https://www.crunchyroll.com/")
+        .replace("https://www.crunchyroll.com/es", "https://www.crunchyroll.com/")
+        .replace("https://www.crunchyroll.com/es-es", "https://www.crunchyroll.com/")
+        .replace("https://www.crunchyroll.com/pt-br", "https://www.crunchyroll.com/")
+        .replace("https://www.crunchyroll.com/pt-pt", "https://www.crunchyroll.com/")
+        .replace("https://www.crunchyroll.com/fr", "https://www.crunchyroll.com/")
+        .replace("https://www.crunchyroll.com/de", "https://www.crunchyroll.com/")
+        .replace("https://www.crunchyroll.com/ar", "https://www.crunchyroll.com/")
+        .replace("https://www.crunchyroll.com/it", "https://www.crunchyroll.com/")
+        .replace("https://www.crunchyroll.com/ru", "https://www.crunchyroll.com/")
+    }
+
     public static parseLocale = (locale: string) => {
         if (locale === "jaJP") return "Japanese"
         if (locale === "enUS") return "English"

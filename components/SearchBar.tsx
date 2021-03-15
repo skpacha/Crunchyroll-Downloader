@@ -129,6 +129,7 @@ const SearchBar: React.FunctionComponent = (props) => {
         if (format === "ass") opts.subtitles = true
         if (format === "mkv") opts.softSubs = true
         opts.kind = getKind()
+        searchText = functions.stripLocale(searchText)
         let episode = await ipcRenderer.invoke("get-episode", searchText, opts)
         if (!episode) {
             let episodes = await ipcRenderer.invoke("get-episodes", searchText, opts)
