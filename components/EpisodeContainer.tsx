@@ -236,7 +236,7 @@ const EpisodeContainer: React.FunctionComponent<EpisodeContainerProps> = (props:
                 </div>
                 <div className="ep-info">
                     <div className="ep-info-col">
-                        <p className="ep-text hover" onMouseDown={(event) => event.stopPropagation()}><span onClick={() => ipcRenderer.invoke("open-url", props.episode.url.match(/(.*?)(?=\/e)/)![0])}>Anime: {props.episode.collection_name.replace(/-/g, " ")}</span></p>
+                        <p className="ep-text hover" onMouseDown={(event) => event.stopPropagation()}><span onClick={() => ipcRenderer.invoke("open-url", props.episode.url.match(/(.*?)(?=\/e)/)![0])}>Anime: {props.episode.collection_name?.replace(/-/g, " ")}</span></p>
                         <p className="ep-text" onMouseDown={(event) => event.stopPropagation()}>Episode: {props.episode.episode_number}</p>
                     </div>
                     <div className="ep-info-col">
