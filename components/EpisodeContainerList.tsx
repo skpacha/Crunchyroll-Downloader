@@ -7,7 +7,7 @@ import {CrunchyrollEpisode, FFmpegProgress} from "crunchyroll.ts"
 import "../styles/episodecontainerlist.less"
 
 const EpisodeContainerList: React.FunctionComponent = (props) => {
-    const {clearAll, setClearAll} = useContext(ClearAllContext)
+    const {setClearAll} = useContext(ClearAllContext)
     const [containers, setContainers] = useState([] as  Array<{id: number, jsx: any}>)
     useEffect(() => {
         const downloadStarted = (event: any, info: {id: number, kind: string, episode: CrunchyrollEpisode, format: string}) => {
