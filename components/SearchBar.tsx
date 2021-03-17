@@ -57,7 +57,7 @@ const SearchBar: React.FunctionComponent = (props) => {
         const html = await fetch(`${url}?skip_wall=1`, {headers: {cookie}}).then((r) => r.text())
         let vilos = null
         try {
-            vilos = JSON.parse(html.match(/(?<=vilos.config.media = )(.*?)(?=;)/)?.[0] ?? "")
+            vilos = JSON.parse(html.match(/(?<=vilos.config.media = )(.*)}(?=;)/)?.[0] ?? "")
         } catch {
             return null
         }
