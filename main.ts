@@ -303,6 +303,7 @@ ipcMain.handle("download-error", async (event, info) => {
 
 ipcMain.handle("download", async (event, info) => {
   await downloadEpisode(info, info.episode).catch((err: Error) => {
+    console.log(err)
     window?.webContents.send("download-error", "download")
   })
 })
