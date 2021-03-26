@@ -15,6 +15,11 @@ export const ClearAllContext = React.createContext<any>(null)
 export const DeleteAllContext = React.createContext<any>(null)
 export const StopAllContext = React.createContext<any>(null)
 
+export const TypeContext = React.createContext<any>(null)
+export const LanguageContext = React.createContext<any>(null)
+export const FormatContext = React.createContext<any>(null)
+export const QualityContext = React.createContext<any>(null)
+
 export const VideoQualityContext = React.createContext<any>(null)
 export const TemplateContext = React.createContext<any>(null)
 
@@ -24,8 +29,16 @@ const App: React.FunctionComponent = () => {
   const [stopAll, setStopAll] = useState(false)
   const [videoQuality, setVideoQuality] = useState(16)
   const [template, setTemplate] = useState("{seasonTitle} {episodeNumber}")
+  const [type, setType] = useState("sub")
+  const [language, setLanguage] = useState("enUS")
+  const [format, setFormat] = useState("mp4")
+  const [quality, setQuality] = useState("1080")
 
   return (
+    <QualityContext.Provider value={{quality, setQuality}}>
+    <FormatContext.Provider value={{format, setFormat}}>
+    <LanguageContext.Provider value={{language, setLanguage}}>
+    <TypeContext.Provider value={{type, setType}}>
     <VideoQualityContext.Provider value={{videoQuality, setVideoQuality}}>
     <TemplateContext.Provider value={{template, setTemplate}}>
     <StopAllContext.Provider value={{stopAll, setStopAll}}>
@@ -46,6 +59,10 @@ const App: React.FunctionComponent = () => {
     </StopAllContext.Provider>
     </TemplateContext.Provider>
     </VideoQualityContext.Provider>
+    </TypeContext.Provider>
+    </LanguageContext.Provider>
+    </FormatContext.Provider>
+    </QualityContext.Provider>
   )
 }
 

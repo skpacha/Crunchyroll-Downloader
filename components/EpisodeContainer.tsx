@@ -21,6 +21,8 @@ import playButtonHover from "../assets/playButton-hover.png"
 import stopButtonHover from "../assets/stopButton-hover.png"
 import locationButtonHover from "../assets/locationButton-hover.png"
 import trashButtonHover from "../assets/trashButton-hover.png"
+import playVideo from "../assets/playVideo.png"
+import playVideoHover from "../assets/playVideo-hover.png"
 import pSBC from "shade-blend-color"
 import "../styles/episodecontainer.less"
 
@@ -48,6 +50,7 @@ const EpisodeContainer: React.FunctionComponent<EpisodeContainerProps> = (props:
     const [hoverStop, setHoverStop] = useState(false)
     const [hoverLocation, setHoverLocation] = useState(false)
     const [hoverTrash, setHoverTrash] = useState(false)
+    const [hoverVideo, setHoverVideo] = useState(false)
     const [progressColor, setProgressColor] = useState("")
     const [backgroundColor, setBackgroundColor] = useState("")
     const [clearSignal, setClearSignal] = useState(false)
@@ -223,6 +226,10 @@ const EpisodeContainer: React.FunctionComponent<EpisodeContainerProps> = (props:
         if (props.format === "png") return pngLabel
     }
 
+    const videoButton = () => {
+        if (output) remote.shell.openExternal(output)
+    }
+
     return (
         <section ref={episodeContainerRef} className="episode-wrap-container" onMouseOver={() => setHover(true)} onMouseEnter={mouseEnter} onMouseLeave={mouseLeave}>
             <div className="episode-container" onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)}>
@@ -233,6 +240,7 @@ const EpisodeContainer: React.FunctionComponent<EpisodeContainerProps> = (props:
                 <div className="ep-name">
                     <p className="ep-text hover" onMouseDown={(event) => event.stopPropagation()}><span onClick={() => ipcRenderer.invoke("open-url", props.episode.url)}>{props.episode.name}</span></p>
                     <img className="ep-label" src={getLabel()}/>
+                    {output ? <img className="ep-video" width="30" height="30" src={hoverVideo ? playVideoHover : playVideo} onClick={videoButton} onMouseEnter={() => setHoverVideo(true)} onMouseLeave={() => setHoverVideo(false)} onMouseDown={(event) => event.stopPropagation()}/> : null}
                 </div>
                 <div className="ep-info">
                     <div className="ep-info-col">

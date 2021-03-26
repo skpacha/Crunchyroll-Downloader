@@ -9,23 +9,24 @@ import searchButtonHover from "../assets/searchButton-hover.png"
 import "../styles/searchbar.less"
 import {CrunchyrollEpisode} from "crunchyroll.ts"
 import functions from "../structures/functions"
-import {TemplateContext, VideoQualityContext} from "../renderer"
+import {TypeContext, QualityContext, FormatContext, LanguageContext, TemplateContext, VideoQualityContext} from "../renderer"
 
 const SearchBar: React.FunctionComponent = (props) => {
     const {template} = useContext(TemplateContext)
     const {videoQuality} = useContext(VideoQualityContext)
+    const {type, setType} = useContext(TypeContext)
+    const {language, setLanguage} = useContext(LanguageContext)
+    const {format, setFormat} = useContext(FormatContext)
+    const {quality, setQuality} = useContext(QualityContext)
     const [id, setID] = useState(1)
     const [directory, setDirectory] = useState("")
     const [folderHover, setFolderHover] = useState(false)
     const [searchHover, setSearchHover] = useState(false)
-    const [type, setType] = useState("sub")
-    const [language, setLanguage] = useState("enUS")
-    const [format, setFormat] = useState("mp4")
-    const [quality, setQuality] = useState("1080")
     const searchBoxRef = useRef(null) as React.RefObject<HTMLInputElement>
     
     useEffect(() => {
         ipcRenderer.invoke("get-downloads-folder").then((f) => setDirectory(f))
+        initSettings()
     }, [])
 
     useEffect(() => {
@@ -33,10 +34,20 @@ const SearchBar: React.FunctionComponent = (props) => {
             if (url) download(url)
         }
         ipcRenderer.on("download-url", downloadURL)
+        ipcRenderer.invoke("store-settings", {type, language, quality, format})
         return () => {
             ipcRenderer.removeListener("download-url", downloadURL)
         }
     })
+
+    
+    const initSettings = async () => {
+        const settings = await ipcRenderer.invoke("init-settings")
+        if (settings.type) setType(settings.type)
+        if (settings.language) setLanguage(settings.language)
+        if (settings.quality) setQuality(settings.quality)
+        if (settings.format) setFormat(settings.format)
+    }
 
     const changeDirectory = async () => {
         const dir = await ipcRenderer.invoke("select-directory")

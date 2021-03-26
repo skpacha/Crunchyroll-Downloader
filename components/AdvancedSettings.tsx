@@ -1,12 +1,17 @@
 import {ipcRenderer} from "electron"
 import React, {useContext, useEffect, useState} from "react"
-import {TemplateContext, VideoQualityContext} from "../renderer"
+import {TemplateContext, VideoQualityContext, TypeContext, LanguageContext, QualityContext, FormatContext} from "../renderer"
 import "../styles/advancedsettings.less"
 
 const AdvancedSettings: React.FunctionComponent = (props) => {
     const {template, setTemplate} = useContext(TemplateContext)
     const {videoQuality, setVideoQuality} = useContext(VideoQualityContext)
     const [visible, setVisible] = useState(false)
+    const {type, setType} = useContext(TypeContext)
+    const {language, setLanguage} = useContext(LanguageContext)
+    const {format, setFormat} = useContext(FormatContext)
+    const {quality, setQuality} = useContext(QualityContext)
+    const [cookieDeleted, setCookieDeleted] = useState(false)
 
     useEffect(() => {
         const showSettingsDialog = (event: any, update: any) => {
@@ -26,10 +31,8 @@ const AdvancedSettings: React.FunctionComponent = (props) => {
 
     const initSettings = async () => {
         const settings = await ipcRenderer.invoke("init-settings")
-        if (settings) {
-            setVideoQuality(settings.videoQuality)
-            setTemplate(settings.template)
-        }
+        if (settings.videoQuality) setVideoQuality(settings.videoQuality)
+        if (settings.template) setTemplate(settings.template)
     }
 
     useEffect(() => {
@@ -43,6 +46,10 @@ const AdvancedSettings: React.FunctionComponent = (props) => {
     const revert = () => {
         setVideoQuality(16)
         setTemplate("{seasonTitle} {episodeNumber}")
+        setType("sub")
+        setLanguage("enUS")
+        setFormat("mp4")
+        setQuality("1080")
     }
 
     const changeTemplate = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -73,6 +80,12 @@ const AdvancedSettings: React.FunctionComponent = (props) => {
         }
     }
 
+    const deleteCookie = () => {
+        ipcRenderer.invoke("delete-cookies")
+        setCookieDeleted(true)
+        setTimeout(() => {setCookieDeleted(false)}, 2000)
+    }
+
     if (visible) {
         return (
             <section className="settings-dialog">
@@ -89,6 +102,10 @@ const AdvancedSettings: React.FunctionComponent = (props) => {
                             <div className="settings-row">
                                 <p className="settings-text">Output: </p>
                                 <input className="settings-input wide" type="text" spellCheck="false" value={template} onChange={changeTemplate}/>
+                            </div>
+                            <div className="settings-row">
+                                <button onClick={deleteCookie} className="cookie-button">Delete Cookies</button>
+                                {cookieDeleted ? <p className="cookie-text">Deleted!</p> : null}
                             </div>
                         </div>
                         <div className="settings-button-container">

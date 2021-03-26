@@ -46,6 +46,11 @@ ipcMain.handle("clear-all", () => {
   window?.webContents.send("clear-all")
 })
 
+ipcMain.handle("delete-cookies", () => {
+  session.defaultSession.clearStorageData()
+  store.delete("cookie")
+})
+
 ipcMain.handle("get-cookie", () => {
   return store.get("cookie", "")
 })
@@ -148,11 +153,7 @@ ipcMain.handle("get-downloads-folder", async (event, location: string) => {
 
 ipcMain.handle("open-location", async (event, location: string) => {
   if (!fs.existsSync(location)) return
-  if (fs.statSync(location).isDirectory()) {
-    shell.openPath(path.normalize(location))
-  } else {
-    shell.showItemInFolder(path.normalize(location))
-  }
+  shell.showItemInFolder(path.normalize(location))
 })
 
 ipcMain.handle("delete-download", async (event, id: number) => {
@@ -339,7 +340,7 @@ if (!singleLock) {
     })
     session.defaultSession.webRequest.onSendHeaders({urls: ["https://www.crunchyroll.com/", "https://www.crunchyroll.com/login"]}, (details) => {
       const cookie = details.requestHeaders["Cookie"]
-      store.set("cookie", cookie)
+      store.set("cookie", encodeURI(cookie))
     })
   })
 }
