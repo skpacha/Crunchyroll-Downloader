@@ -30,8 +30,8 @@ const SearchBar: React.FunctionComponent = (props) => {
     }, [])
 
     useEffect(() => {
-        const downloadURL = (event: any, url: string) => {
-            if (url) download(url)
+        const downloadURL = (event: any, url: string, html: string) => {
+            if (url) download(url, html)
         }
         ipcRenderer.on("download-url", downloadURL)
         ipcRenderer.invoke("store-settings", {type, language, quality, format})
@@ -72,18 +72,18 @@ const SearchBar: React.FunctionComponent = (props) => {
         } catch {
             return null
         }
-        let seasonTitle = html.match(/(?<=<title>)(.*?)(?= Episode)/i)?.[0]
+        let seasonTitle = functions.epRegex(html)
         const seriesTitle = html.match(/(?<=type="application\/rss\+xml" title=")(.*?)(?= Episodes)/)?.[0]
         if (!seasonTitle) seasonTitle = seriesTitle
         const episode = {...vilos.metadata, url, name: vilos.metadata.title, series_name: seriesTitle, collection_name: seasonTitle, screenshot_image: {large_url: vilos.thumbnail.url}, bif_url: vilos.preview.src}
         return episode
     }
 
-    const parseEpisodes = async (url: string) => {
+    const parseEpisodes = async (url: string, html?: string) => {
         const cookie = await ipcRenderer.invoke("get-cookie")
         if (url.endsWith("/")) url = url.slice(0, -1)
-        const html = await fetch(`${url}?skip_wall=1`, {headers: {cookie}}).then((r) => r.text())
-        let urls = html.match(/(episode)(.*?)(?=" title)/gm)
+        if (!html) html = await fetch(`${url}?skip_wall=1`, {headers: {cookie}}).then((r) => r.text())
+        let urls = html?.match(/(episode)(.*?)(?=" title)/gm)
         if (!urls) return ipcRenderer.invoke("download-error", "search")
         urls = urls.map((u) => `${url}/${u}`)
         let episodes = await Promise.all(urls.map((u) => parseEpisode(u)))
@@ -127,7 +127,7 @@ const SearchBar: React.FunctionComponent = (props) => {
         return download(searchText)
     }
       
-    const download = async (searchText: string) => {
+    const download = async (searchText: string, html?: string) => {
         if (!searchText) return
         let opts = {resolution: Number(quality), quality: videoQuality, language, template} as any
         if (type === "sub") opts.preferSub = true
@@ -147,7 +147,7 @@ const SearchBar: React.FunctionComponent = (props) => {
             let episodes = await ipcRenderer.invoke("get-episodes", searchText, opts)
             if (!episodes) {
                 if (/crunchyroll.com/.test(searchText)) {
-                    episodes = await parseEpisodes(searchText)
+                    episodes = await parseEpisodes(searchText, html)
                 } else {
                     return ipcRenderer.invoke("download-error", "search")
                 }

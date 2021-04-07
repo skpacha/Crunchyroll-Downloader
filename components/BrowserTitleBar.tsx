@@ -78,9 +78,10 @@ const BrowserTitleBar: React.FunctionComponent = (props) => {
         }
     }
 
-    const download = () => {
+    const download = async () => {
         const web = document.getElementById("webview") as any
-        ipcRenderer.invoke("download-url", web.getURL())
+        const html = await web.executeJavaScript("document.documentElement.outerHTML")
+        ipcRenderer.invoke("download-url", web.getURL(), html)
     }
 
     const external = () => {

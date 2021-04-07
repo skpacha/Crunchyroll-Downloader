@@ -55,10 +55,10 @@ ipcMain.handle("get-cookie", () => {
   return store.get("cookie", "")
 })
 
-ipcMain.handle("download-url", (event, url) => {
+ipcMain.handle("download-url", (event, url, html) => {
   if (window?.isMinimized()) window?.restore()
   window?.focus()
-  window?.webContents.send("download-url", url)
+  window?.webContents.send("download-url", url, html)
 })
 
 const openWebsite = async () => {

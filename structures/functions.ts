@@ -29,6 +29,17 @@ export default class functions {
         return str.startsWith("0") ? str.slice(1) : str
     }
 
+    public static epRegex = (html: string) => {
+        let seasonTitle = html.match(/(?<=<title>)(.*?)(?= Episode)/i)?.[0]
+        if (!seasonTitle) seasonTitle = html.match(/(?<=<title>)(.*?)(?= Episodio)/i)?.[0]
+        if (!seasonTitle) seasonTitle = html.match(/(?<=<title>)(.*?)(?= Episódio)/i)?.[0]
+        if (!seasonTitle) seasonTitle = html.match(/(?<=<title>)(.*?)(?= Épisode)/i)?.[0]
+        if (!seasonTitle) seasonTitle = html.match(/(?<=<title>)(.*?)(?= Folge)/i)?.[0]
+        if (!seasonTitle) seasonTitle = html.match(/(?<=<title>)(.*?)(?= الحلقة)/i)?.[0]
+        if (!seasonTitle) seasonTitle = html.match(/(?<=<title>)(.*?)(?= Серия)/i)?.[0]
+        return seasonTitle
+    }
+
     public static stripLocale = (link: string) => {
         return link
         .replace("en-gb/", "")
