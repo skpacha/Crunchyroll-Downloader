@@ -13,6 +13,10 @@ export default class functions {
         return arr.filter(item => item !== val)
     }
 
+    public static removeDuplicates = <T>(arr: T[]) => {
+        return [...new Set(arr)];
+    }
+
     public static timeout = async (ms: number) => {
         return new Promise((resolve) => setTimeout(resolve, ms))
     }
@@ -42,15 +46,16 @@ export default class functions {
 
     public static stripLocale = (link: string) => {
         return link
-        .replace("en-gb/", "")
-        .replace("es/", "")
-        .replace("es-es/", "")
-        .replace("pt-br/", "")
-        .replace("pt-pt/", "")
-        .replace("fr/", "")
-        .replace("de/", "")
-        .replace("ar/", "")
-        .replace("it/", "")
+        .replace("/en-gb/", "/")
+        .replace("/es/", "/")
+        .replace("/es-es/", "/")
+        .replace("/pt-br/", "/")
+        .replace("/pt-pt/", "/")
+        .replace("/fr/", "/")
+        .replace("/de/", "/")
+        .replace("/ar/", "/")
+        .replace("/it/", "/")
+        .replace("/ru/", "/")
         .replace("https://www.crunchyroll.com/", "https://www.crunchyroll.com/en-gb/")
     }
 
@@ -76,6 +81,22 @@ export default class functions {
         if (locale.toLowerCase() === "russian") return "ruRU"
         if (locale.toLowerCase() === "portuguese") return "ptPT"
         if (locale.toLowerCase() === "arabic") return "arME"
+        return "None"
+    }
+
+    public static dashLocale = (locale: string) => {
+        if (locale === "jaJP") return "ja-JP"
+        if (locale === "enUS") return "en-US"
+        if (locale === "enGB") return "en-GB"
+        if (locale === "esES") return "es-ES"
+        if (locale === "esLA") return "es-LA"
+        if (locale === "frFR") return "fr-FR"
+        if (locale === "deDE") return "de-DE"
+        if (locale === "itIT") return "it-IT"
+        if (locale === "ruRU") return "ru-RU"
+        if (locale === "ptBR") return "pt-BR"
+        if (locale === "ptPT") return "pt-PT"
+        if (locale === "arME") return "ar-ME"
         return "None"
     }
 

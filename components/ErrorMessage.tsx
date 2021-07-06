@@ -22,6 +22,8 @@ const ErrorMessage: React.FunctionComponent = (props) => {
             return "There was an error downloading this episode, is it premium only?"
         } else if (error === "subtitles") {
             return "Did not find any subtitles in this language for this episode."
+        } else if (error === "png") {
+            return "png format is not supported on beta crunchyroll."
         }
     }
 

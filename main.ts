@@ -228,6 +228,7 @@ ipcMain.handle("get-episodes", async (event, query, info) => {
 })
 
 ipcMain.handle("get-episode", async (event, query, info) => {
+  if (/beta/.test(query)) return null
   if (!/\d+/.test(query)) return null
   const episode = await crunchyroll.episode.get(query, info).catch(() => null)
   if (!episode && /\d{5,}/.test(query) && /episode/.test(query)) return query
