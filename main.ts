@@ -159,10 +159,16 @@ ipcMain.handle("open-location", async (event, location: string) => {
 })
 
 ipcMain.handle("delete-download", async (event, id: number) => {
-  const index = history.findIndex((a) => a.id === id)
+  let dest = ""
+  let index = active.findIndex((a) => a.id === id)
   if (index !== -1) {
-    const dest = history[index].dest
-    // active[index].action = "kill"
+    dest = active[index].dest
+    active[index].action = "kill"
+  } else {
+    index = history.findIndex((a) => a.id === id)
+    if (index !== -1) dest = history[index].dest
+  }
+  if (dest) {
     let error = true
     while (fs.existsSync(dest) && error) {
       await functions.timeout(1000)
@@ -178,7 +184,7 @@ ipcMain.handle("delete-download", async (event, id: number) => {
       }
     }
     return true
-  }
+  } 
   return false
 })
 
@@ -288,7 +294,7 @@ const downloadEpisode = async (info: any, episode: CrunchyrollEpisode) => {
   }
   history.push({id: info.id, dest})
   active.push({id: info.id, dest, action: null})
-  // window?.webContents.send("download-started", {id: info.id, kind: info.kind, episode, format})
+  window?.webContents.send("download-started", {id: info.id, kind: info.kind, episode, format})
   await functions.timeout(100)
   if (fs.existsSync(dest)) {
     if (fs.statSync(dest).isDirectory()) {
@@ -333,7 +339,7 @@ const downloadSubtitles = async (info: any) => {
   if (!fs.existsSync(folder)) fs.mkdirSync(folder, {recursive: true})
   history.push({id: info.id, dest: output})
   active.push({id: info.id, dest: output, action: null})
-  // window?.webContents.send("download-started", {id: info.id, episode: info.episode, format: "ass", kind: info.kind})
+  window?.webContents.send("download-started", {id: info.id, episode: info.episode, format: "ass", kind: info.kind})
   await functions.timeout(100)
   if (fs.existsSync(output)) {
     window?.webContents.send("download-ended", {id: info.id, output, skipped: true})
@@ -371,12 +377,42 @@ ipcMain.handle("update-concurrency", async (event, concurrent) => {
     const next = queue.find((q) => !q.started)
     if (next) {
       counter++
-      await downloadEpisode(next.info, next.info.episode).catch((err: Error) => {
-        console.log(err)
-        window?.webContents.send("download-error", "download")
-      })
+      if (next.format === "ass") {
+        await downloadSubtitles(next.info).catch((err: Error) => {
+          console.log(err)
+          window?.webContents.send("download-error", "download")
+        })
+      } else {
+        await downloadEpisode(next.info, next.info.episode).catch((err: Error) => {
+          console.log(err)
+          window?.webContents.send("download-error", "download")
+        })
+      }
     } else {
       break
+    }
+  }
+})
+
+
+ipcMain.handle("move-queue", async () => {
+  const settings = store.get("settings", {}) as any
+  let concurrent = Number(settings?.queue)
+  if (Number.isNaN(concurrent) || concurrent < 1) concurrent = 1
+  if (active.length < concurrent) {
+    const next = queue.find((q) => !q.started)
+    if (next) {
+      if (next.format === "ass") {
+        await downloadSubtitles(next.info).catch((err: Error) => {
+          console.log(err)
+          window?.webContents.send("download-error", "download")
+        })
+      } else {
+        await downloadEpisode(next.info, next.info.episode).catch((err: Error) => {
+          console.log(err)
+          window?.webContents.send("download-error", "download")
+        })
+      }
     }
   }
 })

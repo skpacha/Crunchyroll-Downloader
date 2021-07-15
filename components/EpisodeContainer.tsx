@@ -57,6 +57,7 @@ const EpisodeContainer: React.FunctionComponent<EpisodeContainerProps> = (props:
     const [stopSignal, setStopSignal] = useState(false)
     const [deleteSignal, setDeleteSignal] = useState(false)
     const [skipped, setSkipped] = useState(false)
+    const [started, setStarted] = useState(false)
     const progressBarRef = useRef(null) as React.RefObject<HTMLDivElement>
     const episodeContainerRef = useRef(null) as React.RefObject<HTMLElement>
     
@@ -66,6 +67,11 @@ const EpisodeContainer: React.FunctionComponent<EpisodeContainerProps> = (props:
                 if (resolution !== info.progress.resolution) setResolution(info.progress.resolution)
                 setProgress(info.progress.percent)
                 setTime(`${functions.formatMS(info.progress.time)} / ${functions.formatMS(info.progress.duration)}`)
+            }
+        }
+        const downloadStarted = (event: any, info: {id: number, kind: string, episode: CrunchyrollEpisode, format: string}) => {
+            if (info.id === props.id) {
+                setStarted(true)
             }
         }
         const downloadEnded = (event: any, info: {id: number, output: string, skipped?: boolean}) => {
@@ -84,12 +90,14 @@ const EpisodeContainer: React.FunctionComponent<EpisodeContainerProps> = (props:
             setDeleteSignal(true)
         }
         ipcRenderer.on("download-progress", downloadProgress)
+        ipcRenderer.on("download-started", downloadStarted)
         ipcRenderer.on("download-ended", downloadEnded)
         ipcRenderer.on("clear-all", clearAll)
         ipcRenderer.on("stop-all", stopAll)
         ipcRenderer.on("delete-all", deleteAll)
         return () => {
             ipcRenderer.removeListener("download-progress", downloadProgress)
+            ipcRenderer.removeListener("download-started", downloadStarted)
             ipcRenderer.removeListener("download-ended", downloadEnded)
             ipcRenderer.removeListener("clear-all", clearAll)
             ipcRenderer.removeListener("stop-all", stopAll)
@@ -107,17 +115,22 @@ const EpisodeContainer: React.FunctionComponent<EpisodeContainerProps> = (props:
 
     const deleteDownload = async () => {
         if (deleted) return
+        setDeleteSignal(false)
+        ipcRenderer.invoke("move-queue")
         const success = await ipcRenderer.invoke("delete-download", props.id)
         if (success) setDeleted(true)
     }
 
     const closeDownload = async () => {
+        ipcRenderer.invoke("move-queue")
         if (!output) ipcRenderer.invoke("delete-download", props.id)
         props.remove(props.id)
     }
     
     const stopDownload = async () => {
         if (stopped) return
+        setStopSignal(false)
+        ipcRenderer.invoke("move-queue")
         if (progress < 0 || progress >= 99) return
         const success = await ipcRenderer.invoke("stop-download", props.id)
         if (success) setStopped(true)
