@@ -10,7 +10,7 @@ const EpisodeContainerList: React.FunctionComponent = (props) => {
     const {setClearAll} = useContext(ClearAllContext)
     const [containers, setContainers] = useState([] as  Array<{id: number, jsx: any}>)
     useEffect(() => {
-        const downloadStarted = (event: any, info: {id: number, kind: string, episode: CrunchyrollEpisode, format: string}) => {
+        const downloadWaiting = (event: any, info: {id: number, kind: string, episode: CrunchyrollEpisode, format: string}) => {
             const progress = {percent: -1} as FFmpegProgress
             setContainers(prev => {
                 let newState = [...prev]
@@ -19,9 +19,9 @@ const EpisodeContainerList: React.FunctionComponent = (props) => {
                 return newState
             })
         }
-        ipcRenderer.on("download-started", downloadStarted)
+        ipcRenderer.on("download-waiting", downloadWaiting)
         return () => {
-            ipcRenderer.removeListener("download-started", downloadStarted)
+            ipcRenderer.removeListener("download-waiting", downloadWaiting)
         }
     }, [])
 

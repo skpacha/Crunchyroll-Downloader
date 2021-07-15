@@ -1,6 +1,6 @@
 import {ipcRenderer} from "electron"
 import React, {useContext, useEffect, useState} from "react"
-import {TemplateContext, VideoQualityContext, TypeContext, LanguageContext, QualityContext, FormatContext} from "../renderer"
+import {TemplateContext, VideoQualityContext, TypeContext, LanguageContext, QualityContext, FormatContext, QueueContext} from "../renderer"
 import "../styles/advancedsettings.less"
 
 const AdvancedSettings: React.FunctionComponent = (props) => {
@@ -11,6 +11,7 @@ const AdvancedSettings: React.FunctionComponent = (props) => {
     const {language, setLanguage} = useContext(LanguageContext)
     const {format, setFormat} = useContext(FormatContext)
     const {quality, setQuality} = useContext(QualityContext)
+    const {queue, setQueue} = useContext(QueueContext)
     const [cookieDeleted, setCookieDeleted] = useState(false)
 
     useEffect(() => {
@@ -33,10 +34,11 @@ const AdvancedSettings: React.FunctionComponent = (props) => {
         const settings = await ipcRenderer.invoke("init-settings")
         if (settings.videoQuality) setVideoQuality(settings.videoQuality)
         if (settings.template) setTemplate(settings.template)
+        if (settings.queue) setQueue(settings.queue)
     }
 
     useEffect(() => {
-        ipcRenderer.invoke("store-settings", {template, videoQuality})
+        ipcRenderer.invoke("store-settings", {template, videoQuality, queue})
     })
 
     const ok = () => {
@@ -50,6 +52,7 @@ const AdvancedSettings: React.FunctionComponent = (props) => {
         setLanguage("enUS")
         setFormat("mp4")
         setQuality("1080")
+        setQueue(12)
     }
 
     const changeTemplate = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -80,6 +83,33 @@ const AdvancedSettings: React.FunctionComponent = (props) => {
         }
     }
 
+    const changeQueue = (event: React.ChangeEvent<HTMLInputElement>) => {
+        let value = event.target.value
+        if (value.includes(".")) return
+        if (value.length > 3) return
+        if (Number.isNaN(Number(value))) return
+        setQueue(value)
+        ipcRenderer.invoke("update-concurrency", Number(value))
+    }
+
+    const changeQueueKey = (event: React.KeyboardEvent<HTMLInputElement>) => {
+        let value = queue
+        if (event.key === "ArrowUp") {
+            setQueue((prev: any) => {
+                if (Number(prev) + 1 > 999) return Number(prev)
+                value = Number(prev) + 1
+                return value
+            })
+        } else if (event.key === "ArrowDown") {
+            setQueue((prev: any) => {
+                if (Number(prev) - 1 < 1) return Number(prev)
+                value = Number(prev) - 1
+                return value
+            })
+        }
+        ipcRenderer.invoke("update-concurrency", Number(value))
+    }
+
     const deleteCookie = () => {
         ipcRenderer.invoke("delete-cookies")
         setCookieDeleted(true)
@@ -102,6 +132,10 @@ const AdvancedSettings: React.FunctionComponent = (props) => {
                             <div className="settings-row">
                                 <p className="settings-text">Output: </p>
                                 <input className="settings-input wide" type="text" spellCheck="false" value={template} onChange={changeTemplate}/>
+                            </div>
+                            <div className="settings-row">
+                                <p className="settings-text">Concurrent Downloads: </p>
+                                <input className="settings-input" type="text" spellCheck="false" value={queue} onChange={changeQueue} onKeyDown={changeQueueKey}/>
                             </div>
                             <div className="settings-row">
                                 <button onClick={deleteCookie} className="cookie-button">Delete Cookies</button>

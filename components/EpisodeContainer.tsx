@@ -158,12 +158,12 @@ const EpisodeContainer: React.FunctionComponent<EpisodeContainerProps> = (props:
     }
 
     const updateProgressColor = () => {
-        const colors = ["#214dff", "#ff2942", "#ff2994", "#c229ff", "#5b29ff", "#29b1ff", "#ff8d29"]
+        const colors = ["#214dff", "#ff2ba7", "#ff2942", "#ff2994", "#c229ff", "#5b29ff", "#29b1ff", "#ff8d29"]
         const progressBar = progressBarRef.current?.querySelector(".progress-bar") as HTMLElement
         if (progress < 0 && !output) {
-             setProgressColor("#ff2ba7")
+             setProgressColor("#573dff")
         } else {
-            if (progressColor === "#ff2ba7") setProgressColor(colors[Math.floor(Math.random() * colors.length)])
+            if (progressColor === "#573dff") setProgressColor(colors[Math.floor(Math.random() * colors.length)])
             if (output) setProgressColor("#2bff64")
             if (skipped) setProgressColor("#ff40d9")
             if (stopped) setProgressColor("#ff2441")
@@ -176,7 +176,7 @@ const EpisodeContainer: React.FunctionComponent<EpisodeContainerProps> = (props:
         let jsx = <p className="ep-text-progress">{prettyProgress()}</p>
         let progressJSX = <ProgressBar ref={progressBarRef} animated now={progress}/>
         if (progress < 0 && !output) {
-            jsx = <p className="ep-text-progress black">Starting...</p>
+            jsx = <p className="ep-text-progress black">Waiting...</p>
             progressJSX = <ProgressBar ref={progressBarRef} animated now={100}/>
         } else {
             if (output) {
@@ -230,6 +230,18 @@ const EpisodeContainer: React.FunctionComponent<EpisodeContainerProps> = (props:
         if (output) remote.shell.openExternal(output)
     }
 
+    const openAnime = async (url: string) => {
+        let anime = ""
+        if (/beta/.test(url)) {
+            const html = await fetch(url).then((r) => r.text())
+            const id = html.match(/(?<="series_id":")(.*)(?=","series_title":)/gm)?.[0]
+            anime = `https://beta.crunchyroll.com/series/${id}`
+        } else {
+            anime = url.match(/(.*?)(?=\/e)/)![0]
+        }
+        ipcRenderer.invoke("open-url", anime)
+    }
+
     return (
         <section ref={episodeContainerRef} className="episode-wrap-container" onMouseOver={() => setHover(true)} onMouseEnter={mouseEnter} onMouseLeave={mouseLeave}>
             <div className="episode-container" onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)}>
@@ -244,7 +256,7 @@ const EpisodeContainer: React.FunctionComponent<EpisodeContainerProps> = (props:
                 </div>
                 <div className="ep-info">
                     <div className="ep-info-col">
-                        <p className="ep-text hover" onMouseDown={(event) => event.stopPropagation()}><span onClick={() => ipcRenderer.invoke("open-url", props.episode.url.match(/(.*?)(?=\/e)/)![0])}>Anime: {props.episode.collection_name?.replace(/-/g, " ")}</span></p>
+                        <p className="ep-text hover" onMouseDown={(event) => event.stopPropagation()}><span onClick={() => openAnime(props.episode.url)}>Anime: {props.episode.collection_name?.replace(/-/g, " ")}</span></p>
                         <p className="ep-text" onMouseDown={(event) => event.stopPropagation()}>Episode: {props.episode.episode_number}</p>
                     </div>
                     <div className="ep-info-col">

@@ -18,7 +18,9 @@ if (!fs.existsSync(ffmpegPath)) ffmpegPath = undefined
 autoUpdater.autoDownload = false
 const store = new Store()
 
+const history: Array<{id: number, dest: string}> = []
 const active: Array<{id: number, dest: string, action: null | "pause" | "stop" | "kill", resume?: () => boolean}> = []
+const queue: Array<{started: boolean, info: any, format: string}> = []
 
 ipcMain.handle("init-settings", () => {
   return store.get("settings", null)
@@ -157,10 +159,10 @@ ipcMain.handle("open-location", async (event, location: string) => {
 })
 
 ipcMain.handle("delete-download", async (event, id: number) => {
-  const index = active.findIndex((a) => a.id === id)
+  const index = history.findIndex((a) => a.id === id)
   if (index !== -1) {
-    const dest = active[index].dest
-    active[index].action = "kill"
+    const dest = history[index].dest
+    // active[index].action = "kill"
     let error = true
     while (fs.existsSync(dest) && error) {
       await functions.timeout(1000)
@@ -235,7 +237,37 @@ ipcMain.handle("get-episode", async (event, query, info) => {
   return episode
 })
 
+const nextQueue = async (info: any) => {
+  const index = active.findIndex((a) => a.id === info.id)
+  if (index !== -1) active.splice(index, 1)
+  const settings = store.get("settings", {}) as any
+  let qIndex = queue.findIndex((q) => q.info.id === info.id)
+  if (qIndex !== -1) {
+    queue.splice(qIndex, 1)
+    let concurrent = Number(settings?.queue)
+    if (Number.isNaN(concurrent) || concurrent < 1) concurrent = 1
+    if (active.length < concurrent) {
+      const next = queue.find((q) => !q.started)
+      if (next) {
+        if (next.format === "ass") { 
+          await downloadSubtitles(next.info).catch((err: Error) => {
+            console.log(err)
+            window?.webContents.send("download-error", "download")
+          })
+        } else {
+          await downloadEpisode(next.info, next.info.episode).catch((err: Error) => {
+            console.log(err)
+            window?.webContents.send("download-error", "download")
+          })
+        }
+      }
+    }
+  }
+}
+
 const downloadEpisode = async (info: any, episode: CrunchyrollEpisode) => {
+  let qIndex = queue.findIndex((q) => q.info.id === info.id)
+  if (qIndex !== -1) queue[qIndex].started = true
   let format = "mp4"
   if (info.softSubs) format = "mkv"
   if (info.audioOnly) format = "mp3"
@@ -254,19 +286,27 @@ const downloadEpisode = async (info: any, episode: CrunchyrollEpisode) => {
       }
     }
   }
+  history.push({id: info.id, dest})
   active.push({id: info.id, dest, action: null})
-  window?.webContents.send("download-started", {id: info.id, kind: info.kind, episode, format})
+  // window?.webContents.send("download-started", {id: info.id, kind: info.kind, episode, format})
   await functions.timeout(100)
   if (fs.existsSync(dest)) {
     if (fs.statSync(dest).isDirectory()) {
       const files = fs.readdirSync(dest)
-      if (files.length) return window?.webContents.send("download-ended", {id: info.id, output: dest, skipped: true})
+      if (files.length) {
+        window?.webContents.send("download-ended", {id: info.id, output: dest, skipped: true})
+        return nextQueue(info)
+      }
     } else {
-      if (info.skipConversion) return window?.webContents.send("download-ended", {id: info.id, output: dest, skipped: true})
+      if (info.skipConversion) {
+        window?.webContents.send("download-ended", {id: info.id, output: dest, skipped: true})
+        return nextQueue(info)
+      }
       const duration1 = await crunchyroll.util.parseDuration(dest, ffmpegPath)
       const duration2 = await crunchyroll.util.parseDuration(info.playlist, ffmpegPath)
       if (Math.round(duration1) === Math.round(duration2)) {
-        return window?.webContents.send("download-ended", {id: info.id, output: dest, skipped: true})
+        window?.webContents.send("download-ended", {id: info.id, output: dest, skipped: true})
+        return nextQueue(info)
       }
     }
   }
@@ -282,32 +322,82 @@ const downloadEpisode = async (info: any, episode: CrunchyrollEpisode) => {
     output = dest
   }
   window?.webContents.send("download-ended", {id: info.id, output})
+  nextQueue(info)
 }
 
-ipcMain.handle("download-subtitles", async (event, info) => {
+const downloadSubtitles = async (info: any) => {
+  let qIndex = queue.findIndex((q) => q.info.id === info.id)
+  if (qIndex !== -1) queue[qIndex].started = true
   let output = crunchyroll.util.parseDest(info.episode, "ass", info.dest, info.template)
   const folder = path.dirname(output)
   if (!fs.existsSync(folder)) fs.mkdirSync(folder, {recursive: true})
+  history.push({id: info.id, dest: output})
   active.push({id: info.id, dest: output, action: null})
-  window?.webContents.send("download-started", {id: info.id, episode: info.episode, format: "ass", kind: info.kind})
+  // window?.webContents.send("download-started", {id: info.id, episode: info.episode, format: "ass", kind: info.kind})
   await functions.timeout(100)
   if (fs.existsSync(output)) {
-    return window?.webContents.send("download-ended", {id: info.id, output, skipped: true})
+    window?.webContents.send("download-ended", {id: info.id, output, skipped: true})
+    return nextQueue(info)
   }
   const data = await axios.get(info.url).then((r) => r.data)
   fs.writeFileSync(output, data)
   window?.webContents.send("download-ended", {id: info.id, output})
+  nextQueue(info)
+}
+
+ipcMain.handle("download-subtitles", async (event, info) => {
+  let format = "ass"
+  window?.webContents.send("download-waiting", {id: info.id, kind: info.kind, episode: info.episode, format})
+  queue.push({info, started: false, format})
+  const settings = store.get("settings", {}) as any
+  let concurrent = Number(settings?.queue)
+  if (Number.isNaN(concurrent) || concurrent < 1) concurrent = 1
+  if (active.length < concurrent) {
+    await downloadSubtitles(info).catch((err: Error) => {
+      console.log(err)
+      window?.webContents.send("download-error", "download")
+    })
+  }
 })
 
 ipcMain.handle("download-error", async (event, info) => {
     window?.webContents.send("download-error", info)
 })
 
+ipcMain.handle("update-concurrency", async (event, concurrent) => {
+  if (Number.isNaN(concurrent) || concurrent < 1) concurrent = 1
+  let counter = active.length
+  while (counter < concurrent) {
+    const next = queue.find((q) => !q.started)
+    if (next) {
+      counter++
+      await downloadEpisode(next.info, next.info.episode).catch((err: Error) => {
+        console.log(err)
+        window?.webContents.send("download-error", "download")
+      })
+    } else {
+      break
+    }
+  }
+})
+
 ipcMain.handle("download", async (event, info) => {
-  await downloadEpisode(info, info.episode).catch((err: Error) => {
-    console.log(err)
-    window?.webContents.send("download-error", "download")
-  })
+  let format = "mp4"
+  if (info.softSubs) format = "mkv"
+  if (info.audioOnly) format = "mp3"
+  if (info.skipConversion) format = "m3u8"
+  if (info.thumbnails) format = "png"
+  window?.webContents.send("download-waiting", {id: info.id, kind: info.kind, episode: info.episode, format})
+  queue.push({info, started: false, format})
+  const settings = store.get("settings", {}) as any
+  let concurrent = Number(settings?.queue)
+  if (Number.isNaN(concurrent) || concurrent < 1) concurrent = 1
+  if (active.length < concurrent) {
+    await downloadEpisode(info, info.episode).catch((err: Error) => {
+      console.log(err)
+      window?.webContents.send("download-error", "download")
+    })
+  }
 })
 
 const singleLock = app.requestSingleInstanceLock()

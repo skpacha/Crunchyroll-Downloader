@@ -22,6 +22,7 @@ export const QualityContext = React.createContext<any>(null)
 
 export const VideoQualityContext = React.createContext<any>(null)
 export const TemplateContext = React.createContext<any>(null)
+export const QueueContext = React.createContext<any>(null)
 
 const App: React.FunctionComponent = () => {
   const [clearAll, setClearAll] = useState(false)
@@ -33,8 +34,10 @@ const App: React.FunctionComponent = () => {
   const [language, setLanguage] = useState("enUS")
   const [format, setFormat] = useState("mp4")
   const [quality, setQuality] = useState("1080")
+  const [queue, setQueue] = useState(12)
 
   return (
+    <QueueContext.Provider value={{queue, setQueue}}>
     <QualityContext.Provider value={{quality, setQuality}}>
     <FormatContext.Provider value={{format, setFormat}}>
     <LanguageContext.Provider value={{language, setLanguage}}>
@@ -63,6 +66,7 @@ const App: React.FunctionComponent = () => {
     </LanguageContext.Provider>
     </FormatContext.Provider>
     </QualityContext.Provider>
+    </QueueContext.Provider>
   )
 }
 
