@@ -248,7 +248,7 @@ const SearchBar: React.FunctionComponent = (props) => {
             } else if (opts.softSubs) {
                     const subtitles = /beta/.test(episode.url) ? await parseSubtitlesBeta({id: 0, episode, dest: directory.replace(/\\+/g, "/"), kind: opts.kind}, false, true) : await parseSubtitles({id: 0, episode, dest: directory.replace(/\\+/g, "/"), kind: opts.kind}, false, true)
                     const playlist = /beta/.test(episode.url) ? await parsePlaylistBeta(episode.url, true) : await parsePlaylist(episode.url, true)
-                    if (!playlist || !subtitles) return ipcRenderer.invoke("download-error", "search")
+                    if (!playlist) return ipcRenderer.invoke("download-error", "search")
                     setID((prev) => {
                         ipcRenderer.invoke("download", {id: prev, episode, dest: directory.replace(/\\+/g, "/"), playlist, subtitles, ...opts})
                         return prev + 1

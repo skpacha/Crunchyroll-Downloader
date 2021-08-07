@@ -108,7 +108,10 @@ const EpisodeContainer: React.FunctionComponent<EpisodeContainerProps> = (props:
     useEffect(() => {
         updateProgressColor()
         updateBackgroundColor()
-        if (clearSignal) closeDownload()
+        if (clearSignal) {
+            if (output || skipped) closeDownload()
+            setClearSignal(false)
+        }
         if (stopSignal) stopDownload()
         if (deleteSignal) deleteDownload()
     })
