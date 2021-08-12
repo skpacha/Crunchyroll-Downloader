@@ -22,6 +22,10 @@ const history: Array<{id: number, dest: string}> = []
 const active: Array<{id: number, dest: string, action: null | "pause" | "stop" | "kill", resume?: () => boolean}> = []
 const queue: Array<{started: boolean, info: any, format: string}> = []
 
+ipcMain.handle("trigger-paste", () => {
+  window?.webContents.send("trigger-paste")
+})
+
 ipcMain.handle("init-settings", () => {
   return store.get("settings", null)
 })
@@ -461,10 +465,12 @@ if (!singleLock) {
     window.on("closed", () => {
       window = null
     })
-    globalShortcut.register("Control+Shift+I", () => {
-      window?.webContents.toggleDevTools()
-      website?.webContents.toggleDevTools()
-    })
+    if (process.env.DEVELOPMENT === "true") {
+      globalShortcut.register("Control+Shift+I", () => {
+        window?.webContents.toggleDevTools()
+        website?.webContents.toggleDevTools()
+      })
+    }
     session.defaultSession.webRequest.onSendHeaders({urls: ["https://www.crunchyroll.com/", "https://www.crunchyroll.com/login"]}, (details) => {
       const cookie = details.requestHeaders["Cookie"]
       store.set("cookie", encodeURI(cookie))

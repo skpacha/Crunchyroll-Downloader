@@ -8,6 +8,7 @@ import VersionDialog from "./components/VersionDialog"
 import LoginDialog from "./components/LoginDialog"
 import AdvancedSettings from "./components/AdvancedSettings"
 import EpisodeContainerList from "./components/EpisodeContainerList"
+import ContextMenu from "./components/ContextMenu"
 import "bootstrap/dist/css/bootstrap.min.css";
 import "./index.less"
 
@@ -49,6 +50,7 @@ const App: React.FunctionComponent = () => {
     <ClearAllContext.Provider value={{clearAll, setClearAll}}>
     <main className="app">
       <TitleBar/>
+      <ContextMenu/>
       <VersionDialog/>
       <LoginDialog/>
       <AdvancedSettings/>

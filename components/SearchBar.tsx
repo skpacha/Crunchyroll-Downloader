@@ -1,4 +1,4 @@
-import {ipcRenderer} from "electron"
+import {ipcRenderer, clipboard} from "electron"
 import React, {useState, useEffect, useRef, useContext} from "react"
 import {Dropdown, DropdownButton} from "react-bootstrap"
 import folderButton from "../assets/folderButton.png"
@@ -27,6 +27,14 @@ const SearchBar: React.FunctionComponent = (props) => {
     useEffect(() => {
         ipcRenderer.invoke("get-downloads-folder").then((f) => setDirectory(f))
         initSettings()
+        const triggerPaste = () => {
+            const text = clipboard.readText()
+            searchBoxRef.current!.value += text
+        }
+        ipcRenderer.on("trigger-paste", triggerPaste)
+        return () => {
+            ipcRenderer.removeListener("trigger-paste", triggerPaste)
+        }
     }, [])
 
     useEffect(() => {
