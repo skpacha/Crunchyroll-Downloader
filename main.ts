@@ -22,6 +22,10 @@ const history: Array<{id: number, dest: string}> = []
 const active: Array<{id: number, dest: string, action: null | "pause" | "stop" | "kill", resume?: () => boolean}> = []
 const queue: Array<{started: boolean, info: any, format: string}> = []
 
+ipcMain.handle("update-color", (event, color: string) => {
+  window?.webContents.send("update-color", color)
+})
+
 ipcMain.handle("trigger-paste", () => {
   window?.webContents.send("trigger-paste")
 })
@@ -129,6 +133,14 @@ ipcMain.handle("login", async (event, username, password) => {
 ipcMain.handle("login-dialog", async (event) => {
   window?.webContents.send("close-all-dialogs", "login")
   window?.webContents.send("show-login-dialog")
+})
+
+ipcMain.handle("get-theme", () => {
+  return store.get("theme", "light")
+})
+
+ipcMain.handle("save-theme", (event, theme: string) => {
+  store.set("theme", theme)
 })
 
 ipcMain.handle("install-update", async (event) => {

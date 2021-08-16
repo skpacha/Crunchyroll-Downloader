@@ -1,7 +1,7 @@
 import {CrunchyrollEpisode, FFmpegProgress} from "crunchyroll.ts"
 import {ipcRenderer, remote} from "electron"
 import functions from "../structures/functions"
-import React, {useState, useEffect, useRef} from "react"
+import React, {useState, useEffect, useRef, useReducer} from "react"
 import mp4Label from "../assets/mp4Label.png"
 import {ProgressBar} from "react-bootstrap"
 import mp3Label from "../assets/mp3Label.png"
@@ -57,7 +57,8 @@ const EpisodeContainer: React.FunctionComponent<EpisodeContainerProps> = (props:
     const [stopSignal, setStopSignal] = useState(false)
     const [deleteSignal, setDeleteSignal] = useState(false)
     const [skipped, setSkipped] = useState(false)
-    const [started, setStarted] = useState(false)
+    const [started, setStarted] = useState(false) 
+    const [ignored, forceUpdate] = useReducer(x => x + 1, 0)
     const progressBarRef = useRef(null) as React.RefObject<HTMLDivElement>
     const episodeContainerRef = useRef(null) as React.RefObject<HTMLElement>
     
@@ -95,6 +96,7 @@ const EpisodeContainer: React.FunctionComponent<EpisodeContainerProps> = (props:
         ipcRenderer.on("clear-all", clearAll)
         ipcRenderer.on("stop-all", stopAll)
         ipcRenderer.on("delete-all", deleteAll)
+        ipcRenderer.on("update-color", forceUpdate)
         return () => {
             ipcRenderer.removeListener("download-progress", downloadProgress)
             ipcRenderer.removeListener("download-started", downloadStarted)
@@ -102,6 +104,7 @@ const EpisodeContainer: React.FunctionComponent<EpisodeContainerProps> = (props:
             ipcRenderer.removeListener("clear-all", clearAll)
             ipcRenderer.removeListener("stop-all", stopAll)
             ipcRenderer.removeListener("delete-all", deleteAll)
+            ipcRenderer.removeListener("update-color", forceUpdate)
         }
     }, [])
 
@@ -162,15 +165,31 @@ const EpisodeContainer: React.FunctionComponent<EpisodeContainerProps> = (props:
         return paused ? `${str} (Paused)` : str
     }
 
-    const updateBackgroundColor = () => {
+    const updateBackgroundColor = async () => {
         const colors = ["#f6642c", "#f6432c", "#f62c55", "#2c79f6", "#f62c98", "#f62c4a", "#2c69f6"]
         const container = episodeContainerRef.current?.querySelector(".episode-container") as HTMLElement
+        if (!container) return
         if (!backgroundColor) {
             const color = colors[Math.floor(Math.random() * colors.length)]
             setBackgroundColor(color)
         }
-        container.style.backgroundColor = backgroundColor
-        container.style.border = `4px solid ${pSBC(0.4, backgroundColor)}`
+        const theme = await ipcRenderer.invoke("get-theme")
+        console.log(theme)
+        if (theme === "light") {
+            const text = episodeContainerRef.current?.querySelectorAll(".ep-text, .ep-text-alt") as NodeListOf<HTMLElement>
+            text.forEach((t) => {
+                t.style.color = "black"
+            })
+            container.style.backgroundColor = backgroundColor
+            container.style.border = `2px solid ${pSBC(0.4, backgroundColor)}`
+        } else {
+            const text = episodeContainerRef.current?.querySelectorAll(".ep-text, .ep-text-alt") as NodeListOf<HTMLElement>
+            text.forEach((t) => {
+                t.style.color = backgroundColor
+            })
+            container.style.backgroundColor = "#090409"
+            container.style.border = `2px solid #090409`
+        }
     }
 
     const updateProgressColor = () => {
