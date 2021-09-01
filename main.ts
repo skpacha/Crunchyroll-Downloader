@@ -350,7 +350,7 @@ const downloadEpisode = async (info: any, episode: CrunchyrollEpisode) => {
 const downloadSubtitles = async (info: any) => {
   let qIndex = queue.findIndex((q) => q.info.id === info.id)
   if (qIndex !== -1) queue[qIndex].started = true
-  let output = crunchyroll.util.parseDest(info.episode, "ass", info.dest, info.template, info.language)
+  let output = crunchyroll.util.parseDest(info.episode, "ass", info.dest, info.template, null, info.language)
   const folder = path.dirname(output)
   if (!fs.existsSync(folder)) fs.mkdirSync(folder, {recursive: true})
   history.push({id: info.id, dest: output})
