@@ -295,7 +295,7 @@ const downloadEpisode = async (info: any, episode: CrunchyrollEpisode) => {
   if (info.audioOnly) format = "mp3"
   if (info.skipConversion) format = "m3u8"
   if (info.thumbnails) format = "png"
-  let dest = crunchyroll.util.parseDest(episode, format, info.dest, info.template, info.playlist)
+  let dest = crunchyroll.util.parseDest(episode, format, info.dest, info.template, info.playlist, info.language)
   const videoProgress = (progress: FFmpegProgress, resume: () => boolean) => {
     window?.webContents.send("download-progress", {id: info.id, progress})
     let index = active.findIndex((e) => e.id === info.id)
@@ -350,7 +350,7 @@ const downloadEpisode = async (info: any, episode: CrunchyrollEpisode) => {
 const downloadSubtitles = async (info: any) => {
   let qIndex = queue.findIndex((q) => q.info.id === info.id)
   if (qIndex !== -1) queue[qIndex].started = true
-  let output = crunchyroll.util.parseDest(info.episode, "ass", info.dest, info.template)
+  let output = crunchyroll.util.parseDest(info.episode, "ass", info.dest, info.template, info.language)
   const folder = path.dirname(output)
   if (!fs.existsSync(folder)) fs.mkdirSync(folder, {recursive: true})
   history.push({id: info.id, dest: output})

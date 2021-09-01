@@ -24,7 +24,8 @@ You can specify a custom output path. The default is `{seasonTitle} {episodeNumb
 {episodeTitle} - The title of the episode \
 {seriesTitle} - The title of the series (ex. The series of SAO II is "Sword Art Online") \
 {episodeNumber} - The number of the episode \
-{resolution} - The resolution, excluding the "p". Only available for video formats.
+{resolution} - The resolution (ex. "1080p"). Only available for video formats.
+{language} - The language (ex. "English").
 
 ### Installation
 
