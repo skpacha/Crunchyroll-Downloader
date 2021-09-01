@@ -162,7 +162,7 @@ const SearchBar: React.FunctionComponent = (props) => {
         if (!subtitles && language === "esLA") subtitles = vilos?.subtitles.filter((s: any) => s.language === "esES")
         if (!subtitles && language === "ptBR") subtitles = vilos?.subtitles.filter((s: any) => s.language === "ptPT")
         if (!subtitles?.[0]) return error ? ipcRenderer.invoke("download-error", "search") : null
-        if (!noDL) ipcRenderer.invoke("download-subtitles", {url: subtitles[0].url, dest: info.dest, id: info.id, episode: info.episode, kind: info.kind, template})
+        if (!noDL) ipcRenderer.invoke("download-subtitles", {url: subtitles[0].url, dest: info.dest, id: info.id, episode: info.episode, kind: info.kind, template, language})
         return subtitles[0].url
     }
 
@@ -180,7 +180,7 @@ const SearchBar: React.FunctionComponent = (props) => {
         let subLang = functions.dashLocale(language)
         const subtitles = vilos.subtitles[subLang].url
         if (!subtitles?.[0]) return error ? ipcRenderer.invoke("download-error", "search") : null
-        if (!noDL) ipcRenderer.invoke("download-subtitles", {url: subtitles, dest: info.dest, id: info.id, episode: info.episode, kind: info.kind, template})
+        if (!noDL) ipcRenderer.invoke("download-subtitles", {url: subtitles, dest: info.dest, id: info.id, episode: info.episode, kind: info.kind, template, language})
         return subtitles
     }
 
