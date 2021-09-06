@@ -174,7 +174,6 @@ const EpisodeContainer: React.FunctionComponent<EpisodeContainerProps> = (props:
             setBackgroundColor(color)
         }
         const theme = await ipcRenderer.invoke("get-theme")
-        console.log(theme)
         if (theme === "light") {
             const text = episodeContainerRef.current?.querySelectorAll(".ep-text, .ep-text-alt") as NodeListOf<HTMLElement>
             text.forEach((t) => {

@@ -118,4 +118,8 @@ export default class functions {
             }
         }
     }
+
+    public static skipWall = (url: string) => {
+        return url.includes("?") ? `${url}&skip_wall=1` : `${url}?skip_wall=1`
+    }
 }

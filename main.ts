@@ -56,6 +56,14 @@ ipcMain.handle("clear-all", () => {
   window?.webContents.send("clear-all")
 })
 
+ipcMain.handle("get-streams", () => {
+  return store.get("streams", "")
+})
+
+ipcMain.handle("get-object", () => {
+  return store.get("object", "")
+})
+
 ipcMain.handle("delete-cookies", () => {
   session.defaultSession.clearStorageData()
   store.delete("cookie")
@@ -486,6 +494,10 @@ if (!singleLock) {
     session.defaultSession.webRequest.onSendHeaders({urls: ["https://www.crunchyroll.com/", "https://www.crunchyroll.com/login"]}, (details) => {
       const cookie = details.requestHeaders["Cookie"]
       store.set("cookie", encodeURI(cookie))
+    })
+    session.defaultSession.webRequest.onCompleted({urls: ["https://beta-api.crunchyroll.com/cms/*"]}, (details) => {
+      if (details.url.includes("objects/")) store.set("object", encodeURI(details.url))
+      if (details.url.includes("videos/")) store.set("streams", encodeURI(details.url))
     })
   })
 }

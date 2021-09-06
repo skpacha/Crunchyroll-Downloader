@@ -65,12 +65,12 @@ const SearchBar: React.FunctionComponent = (props) => {
     const parseEpisode = async (url: string) => {
         const cookie = await ipcRenderer.invoke("get-cookie")
         if (url.endsWith("/")) url = url.slice(0, -1)
-        const html = await fetch(`${url}?skip_wall=1`, {headers: {cookie}}).then((r) => r.text())
+        const html = await fetch(functions.skipWall(url), {headers: {cookie}}).then((r) => r.text())
         let vilos = null
         try {
             vilos = JSON.parse(html.match(/(?<=vilos.config.media = )(.*)}(?=;)/)?.[0]!)
         } catch {
-            return null
+            return parseEpisodeBeta(url)
         }
         let seasonTitle = functions.epRegex(html)
         const seriesTitle = html.match(/(?<=type="application\/rss\+xml" title=")(.*?)(?= Episodes)/)?.[0]
@@ -82,8 +82,8 @@ const SearchBar: React.FunctionComponent = (props) => {
     const parseEpisodeBeta = async (url: string) => {
         const cookie = await ipcRenderer.invoke("get-cookie")
         if (/series/.test(url)) return null
-        const id = url.match(/(?<=watch\/)(.*)(?=\/)/)?.[0] ?? ""
         const html = await fetch(url, {headers: {cookie}}).then((r) => r.text())
+        const id = html.match(/(?<=watch\/)(.*?)(?=\/)/)?.[0] ?? ""
         let json = null
         try {
             json = JSON.parse(html.match(/(?<=window\.__INITIAL_STATE__ = ){.*}/gm)?.[0]!)
@@ -91,15 +91,17 @@ const SearchBar: React.FunctionComponent = (props) => {
             return null
         }
         const meta = json.content.byId[id]
+        const streamsUrl = await ipcRenderer.invoke("get-streams")
+        const streamsJSON = await fetch(streamsUrl, {headers: {cookie}}).then((r) => r.json())
         const episode = {...meta, episode_number: meta.episode_metadata.episode_number, duration: meta.episode_metadata.duration_ms, url,
-        name: meta.title, series_name: meta.episode_metadata.series_title, collection_name: meta.episode_metadata.season_title, screenshot_image: {large_url: meta.images.thumbnail[0][0].source}}
+        name: meta.title, series_name: meta.episode_metadata.series_title, collection_name: meta.episode_metadata.season_title, screenshot_image: {large_url: meta.images.thumbnail[0][0].source}, bif_url: streamsJSON.bifs[0]}
         return episode
     }
 
     const parseEpisodes = async (url: string, html?: string) => {
         const cookie = await ipcRenderer.invoke("get-cookie")
         if (url.endsWith("/")) url = url.slice(0, -1)
-        if (!html) html = await fetch(`${url}?skip_wall=1`, {headers: {cookie}}).then((r) => r.text())
+        if (!html) html = await fetch(functions.skipWall(url), {headers: {cookie}}).then((r) => r.text())
         let urls = html?.match(/(episode)(.*?)(?=" title)/gm)
         if (!urls) return ipcRenderer.invoke("download-error", "search")
         urls = urls.map((u) => `${url}/${u}`)
@@ -120,8 +122,13 @@ const SearchBar: React.FunctionComponent = (props) => {
     const parsePlaylist = async (url: string, noSub?: boolean) => {
         const cookie = await ipcRenderer.invoke("get-cookie")
         if (url.endsWith("/")) url = url.slice(0, -1)
-        const html = await fetch(`${url}?skip_wall=1`, {headers: {cookie}}).then((r) => r.text())
-        const vilos = JSON.parse(html.match(/(?<=vilos.config.media = )(.*)}(?=;)/)?.[0] ?? "")
+        const html = await fetch(functions.skipWall(url), {headers: {cookie}}).then((r) => r.text())
+        let vilos = null
+        try {
+            vilos = JSON.parse(html.match(/(?<=vilos.config.media = )(.*)}(?=;)/)?.[0] ?? "")
+        } catch {
+            return parsePlaylistBeta(url, noSub)
+        }
         const hls = vilos?.streams.filter((s: any) => s.format === "adaptive_hls" || s.format === "trailer_hls")
         let audioLang = type === "sub" ? "jaJP" : language
         let subLang = type === "dub" || noSub ? null : language
@@ -134,15 +141,21 @@ const SearchBar: React.FunctionComponent = (props) => {
 
     const parsePlaylistBeta = async (url: string, noSub?: boolean) => {
         const cookie = await ipcRenderer.invoke("get-cookie")
-        const id = url.match(/(?<=watch\/)(.*)(?=\/)/)?.[0] ?? ""
         const html = await fetch(url, {headers: {cookie}}).then((r) => r.text())
+        const id = html.match(/(?<=watch\/)(.*?)(?=\/)/)?.[0] ?? ""
         let json = null
         try {
             json = JSON.parse(html.match(/(?<=window\.__INITIAL_STATE__ = ){.*}/gm)?.[0]!)
         } catch {
             return null
         }
-        const vilos = await fetch(json.content.byId[id].playback, {headers: {cookie}}).then((r) => r.json())
+        let playback = json.content.byId[id].playback
+        if (!playback) {
+            const objectUrl = await ipcRenderer.invoke("get-object")
+            json = await fetch(objectUrl, {headers: {cookie}}).then((r) => r.json())
+            playback = json.items[0].playback
+        }
+        const vilos = await fetch(playback, {headers: {cookie}}).then((r) => r.json())
         let audioLang = type === "sub" ? "ja-JP" : functions.dashLocale(language)
         if (vilos.audio_locale !== audioLang) return null
         let subLang = type === "dub" || noSub ? "" : functions.dashLocale(language)
@@ -157,7 +170,12 @@ const SearchBar: React.FunctionComponent = (props) => {
     const parseSubtitles = async (info: {id: number, episode: CrunchyrollEpisode, dest: string, kind: string}, error?: boolean, noDL?: boolean) => {
         const cookie = await ipcRenderer.invoke("get-cookie")
         const html = await fetch(info.episode.url, {headers: {cookie}}).then((r) => r.text())
-        const vilos = JSON.parse(html.match(/(?<=vilos.config.media = )(.*)}(?=;)/)?.[0] ?? "")
+        let vilos = null
+        try {
+            vilos = JSON.parse(html.match(/(?<=vilos.config.media = )(.*)}(?=;)/)?.[0] ?? "")
+        } catch {
+            return parseSubtitlesBeta(info, error, noDL)
+        }
         let subtitles = vilos?.subtitles.filter((s: any) => s.language === language)
         if (!subtitles && language === "esLA") subtitles = vilos?.subtitles.filter((s: any) => s.language === "esES")
         if (!subtitles && language === "ptBR") subtitles = vilos?.subtitles.filter((s: any) => s.language === "ptPT")
@@ -168,8 +186,8 @@ const SearchBar: React.FunctionComponent = (props) => {
 
     const parseSubtitlesBeta = async (info: {id: number, episode: CrunchyrollEpisode, dest: string, kind: string}, error?: boolean, noDL?: boolean) => {
         const cookie = await ipcRenderer.invoke("get-cookie")
-        const id = info.episode.url.match(/(?<=watch\/)(.*)(?=\/)/)?.[0] ?? ""
         const html = await fetch(info.episode.url, {headers: {cookie}}).then((r) => r.text())
+        const id = html.match(/(?<=watch\/)(.*?)(?=\/)/)?.[0] ?? ""
         let json = null
         try {
             json = JSON.parse(html.match(/(?<=window\.__INITIAL_STATE__ = ){.*}/gm)?.[0]!)
@@ -204,10 +222,7 @@ const SearchBar: React.FunctionComponent = (props) => {
         }
         if (format === "mp3") opts.audioOnly = true
         if (format === "m3u8") opts.skipConversion = true
-        if (format === "png") {
-            opts.thumbnails = true
-            if (/beta/.test(searchText)) return ipcRenderer.invoke("download-error", "png")
-        }
+        if (format === "png") opts.thumbnails = true
         if (format === "ass") opts.subtitles = true
         if (format === "mkv") opts.softSubs = true
         opts.kind = getKind()
