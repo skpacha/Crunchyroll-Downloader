@@ -128,7 +128,7 @@ const EpisodeContainer: React.FunctionComponent<EpisodeContainerProps> = (props:
     }
 
     const closeDownload = async () => {
-        ipcRenderer.invoke("move-queue")
+        ipcRenderer.invoke("move-queue", props.id)
         if (!output) ipcRenderer.invoke("delete-download", props.id)
         props.remove(props.id)
     }

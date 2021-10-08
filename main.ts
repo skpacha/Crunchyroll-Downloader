@@ -419,10 +419,14 @@ ipcMain.handle("update-concurrency", async (event, concurrent) => {
 })
 
 
-ipcMain.handle("move-queue", async () => {
+ipcMain.handle("move-queue", async (event, id: number) => {
   const settings = store.get("settings", {}) as any
   let concurrent = Number(settings?.queue)
   if (Number.isNaN(concurrent) || concurrent < 1) concurrent = 1
+  if (id) {
+    let qIndex = queue.findIndex((q) => q.info.id === id)
+    if (qIndex !== -1) queue.splice(qIndex, 1)
+  }
   if (active.length < concurrent) {
     const next = queue.find((q) => !q.started)
     if (next) {
