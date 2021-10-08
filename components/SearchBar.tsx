@@ -106,7 +106,7 @@ const SearchBar: React.FunctionComponent = (props) => {
         if (!urls) return ipcRenderer.invoke("download-error", "search")
         urls = urls.map((u) => `${url}/${u}`)
         let episodes = await Promise.all(urls.map((u) => parseEpisode(u)))
-        return episodes
+        return episodes.sort((a, b) => Number(a.episode_number) > Number(b.episode_number) ? 1 : -1)
     }
 
     const parseEpisodesBeta = async (url: string, html?: string) => {
@@ -116,7 +116,7 @@ const SearchBar: React.FunctionComponent = (props) => {
         urls = functions.removeDuplicates(urls?.map((u) => `https://beta.crunchyroll.com/${u}`))
         if (!urls?.length) return ipcRenderer.invoke("download-error", "search")
         let episodes = await Promise.all(urls.map((u) => parseEpisodeBeta(u)))
-        return episodes
+        return episodes.sort((a, b) => Number(a.episode_number) > Number(b.episode_number) ? 1 : -1)
     }
 
     const parsePlaylist = async (url: string, noSub?: boolean) => {
@@ -233,7 +233,26 @@ const SearchBar: React.FunctionComponent = (props) => {
             let episodes = await ipcRenderer.invoke("get-episodes", searchText, opts)
             if (!episodes) {
                 if (/crunchyroll.com/.test(searchText)) {
+                    let start = null as any
+                    let end = null as any
+                    if (/\d *- *\d/.test(searchText)) {
+                        let part = searchText.match(/(?<= )\d(.*?)(?=$)/)?.[0] ?? ""
+                        start = Number(part.split("-")[0]) - 1
+                        end = Number(part.split("-")[1])
+                        searchText = searchText.replace(part, "").trim()
+                    } else if (/ \d+/.test(searchText)) {
+                        start = Number(searchText.match(/ \d+/)?.[0]) - 1
+                        searchText = searchText.replace(String(start + 1), "").trim()
+                    }
+                    console.log(start)
+                    console.log(end)
+                    console.log(searchText)
                     episodes = /beta/.test(searchText) ?  await parseEpisodesBeta(searchText, html) : await parseEpisodes(searchText, html)
+                    if (start !== null && end !== null) {
+                        episodes = episodes.slice(start, end)
+                    } else if (start !== null) {
+                        episodes = [episodes[start]]
+                    }
                 } else {
                     return ipcRenderer.invoke("download-error", "search")
                 }

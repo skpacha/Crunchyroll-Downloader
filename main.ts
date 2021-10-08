@@ -248,6 +248,14 @@ ipcMain.handle("select-directory", async () => {
 
 ipcMain.handle("get-episodes", async (event, query, info) => {
   if (/crunchyroll.com/.test(query)) return null
+  let start = null as any
+  let end = null as any
+  if (/\d *- *\d/.test(query)) {
+    let part = query.match(/(?<= )\d(.*?)(?=$)/)?.[0]
+    start = Number(part.split("-")[0]) - 1
+    end = Number(part.split("-")[1])
+    query = query.replace(part, "").trim()
+  }
   let episodes = null
   if (/\d{5,}/.test(query)) {
     const anime = await crunchyroll.anime.get(query).catch(() => query)
@@ -256,12 +264,13 @@ ipcMain.handle("get-episodes", async (event, query, info) => {
     const season = await crunchyroll.season.get(query, info).catch(() => query)
     episodes = await crunchyroll.anime.episodes(season, info).catch(() => null)
   }
-  return episodes
+  return start !== null ? episodes?.slice(start, end) : episodes
 })
 
 ipcMain.handle("get-episode", async (event, query, info) => {
   if (/beta/.test(query)) return null
   if (!/\d+/.test(query)) return null
+  if (/\d *- *\d/.test(query)) return null
   const episode = await crunchyroll.episode.get(query, info).catch(() => null)
   if (!episode && /\d{5,}/.test(query) && /episode/.test(query)) return query
   return episode
