@@ -92,9 +92,9 @@ const SearchBar: React.FunctionComponent = (props) => {
         }
         const meta = json.content.byId[id]
         const streamsUrl = await ipcRenderer.invoke("get-streams")
-        const streamsJSON = await fetch(streamsUrl, {headers: {cookie}}).then((r) => r.json())
+        const streamsJSON = await fetch(streamsUrl, {headers: {cookie}}).then((r) => r.json()).catch(() => null)
         const episode = {...meta, episode_number: meta.episode_metadata.episode_number, duration: meta.episode_metadata.duration_ms, url,
-        name: meta.title, series_name: meta.episode_metadata.series_title, collection_name: meta.episode_metadata.season_title, screenshot_image: {large_url: meta.images.thumbnail[0][0].source}, bif_url: streamsJSON.bifs[0]}
+        name: meta.title, series_name: meta.episode_metadata.series_title, collection_name: meta.episode_metadata.season_title, screenshot_image: {large_url: meta.images.thumbnail[0][0].source}, bif_url: streamsJSON?.bifs[0]}
         return episode
     }
 
@@ -244,9 +244,6 @@ const SearchBar: React.FunctionComponent = (props) => {
                         start = Number(searchText.match(/ \d+/)?.[0]) - 1
                         searchText = searchText.replace(String(start + 1), "").trim()
                     }
-                    console.log(start)
-                    console.log(end)
-                    console.log(searchText)
                     episodes = /beta/.test(searchText) ?  await parseEpisodesBeta(searchText, html) : await parseEpisodes(searchText, html)
                     if (start !== null && end !== null) {
                         episodes = episodes.slice(start, end)
