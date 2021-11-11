@@ -1,4 +1,5 @@
 import {ipcRenderer, clipboard} from "electron"
+import {shell} from "@electron/remote"
 import React, {useState, useEffect, useRef, useContext} from "react"
 import {Dropdown, DropdownButton} from "react-bootstrap"
 import folderButton from "../assets/folderButton.png"
@@ -320,7 +321,7 @@ const SearchBar: React.FunctionComponent = (props) => {
             <ErrorMessage/>
             <div className="download-location" onKeyDown={enterSearch}>
                 <img className="download-location-img" width="25" height="25" src={folderHover ? folderButtonHover : folderButton} onMouseEnter={() => setFolderHover(true)} onMouseLeave={() => setFolderHover(false)} onClick={changeDirectory}/>
-                <p><span className="download-location-text">{directory}</span></p>
+                <p><span className="download-location-text" onDoubleClick={() => shell.openPath(directory)}>{directory}</span></p>
             </div>
             <div className="dropdown-options">
                 <div className="dropdown-container">

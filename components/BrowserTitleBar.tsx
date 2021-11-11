@@ -1,5 +1,6 @@
 import React, {useState, useEffect} from "react"
-import {remote, ipcRenderer} from "electron"
+import {ipcRenderer} from "electron"
+import {getCurrentWindow, shell} from "@electron/remote"
 import minimizeButton from "../assets/browserMinimize.png"
 import maximizeButton from "../assets/browserMaximize.png"
 import closeButton from "../assets/browserClose.png"
@@ -43,11 +44,11 @@ const BrowserTitleBar: React.FunctionComponent = (props) => {
     })
 
     const minimize = () => {
-        remote.getCurrentWindow().minimize()
+        getCurrentWindow().minimize()
     }
 
     const maximize = () => {
-        const window = remote.getCurrentWindow()
+        const window = getCurrentWindow()
         if (window.isMaximized()) {
             window.unmaximize()
         } else {
@@ -56,7 +57,7 @@ const BrowserTitleBar: React.FunctionComponent = (props) => {
     }
     
     const close = () => {
-        remote.getCurrentWindow().close()
+        getCurrentWindow().close()
     }
 
     const home = () => {
@@ -86,7 +87,7 @@ const BrowserTitleBar: React.FunctionComponent = (props) => {
 
     const external = () => {
         const web = document.getElementById("webview") as any
-        remote.shell.openExternal(web.getURL())
+        shell.openExternal(web.getURL())
     }
 
     const refresh = () => {

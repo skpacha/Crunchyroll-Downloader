@@ -1,4 +1,4 @@
-import React, {useState} from "react"
+import React, {useEffect, useState} from "react"
 import ReactDom from "react-dom"
 import TitleBar from "./components/TitleBar"
 import SearchBar from "./components/SearchBar"

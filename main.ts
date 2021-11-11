@@ -10,11 +10,14 @@ import process from "process"
 import pack from "./package.json"
 import "./dev-app-update.yml"
 
+require("@electron/remote/main").initialize()
 process.setMaxListeners(0)
 let window: Electron.BrowserWindow | null
 let website: Electron.BrowserWindow | null
-let ffmpegPath = path.join(app.getAppPath(), "../../ffmpeg/ffmpeg.exe") as any
-if (!fs.existsSync(ffmpegPath)) ffmpegPath = undefined
+let ffmpegPath = undefined as any
+if (process.platform === "darwin") ffmpegPath = path.join(app.getAppPath(), "../../ffmpeg/ffmpeg.app")
+if (process.platform === "win32") ffmpegPath = path.join(app.getAppPath(), "../../ffmpeg/ffmpeg.exe")
+if (!fs.existsSync(ffmpegPath)) ffmpegPath = process.platform === "darwin" ? "/opt/homebrew/Cellar/ffmpeg/4.4.1_3/bin/ffmpeg" : undefined
 autoUpdater.autoDownload = false
 const store = new Store()
 
@@ -81,8 +84,9 @@ ipcMain.handle("download-url", (event, url, html) => {
 
 const openWebsite = async () => {
   if (!website) {
-    website = new BrowserWindow({width: 800, height: 600, minWidth: 790, minHeight: 550, frame: false, backgroundColor: "#ffffff", center: false, webPreferences: {nodeIntegration: true, webviewTag: true, contextIsolation: false, enableRemoteModule: true}})
+    website = new BrowserWindow({width: 800, height: 600, minWidth: 790, minHeight: 550, frame: false, backgroundColor: "#ffffff", center: false, webPreferences: {nodeIntegration: true, webviewTag: true, contextIsolation: false}})
     await website.loadFile(path.join(__dirname, "crunchyroll.html"))
+    require("@electron/remote/main").enable(website.webContents)
     website?.on("closed", () => {
       website = null
     })
@@ -130,7 +134,7 @@ ipcMain.handle("login", async (event, username, password) => {
     store.set("username", result.user.username)
     store.set("password", password)
     return result.user.username
-  } catch (error) {
+  } catch (error: any) {
     if (Number(error.response?.status) === 429) {
       return "rate limited"
     }
@@ -152,8 +156,15 @@ ipcMain.handle("save-theme", (event, theme: string) => {
 })
 
 ipcMain.handle("install-update", async (event) => {
-  await autoUpdater.downloadUpdate()
-  autoUpdater.quitAndInstall()
+  if (process.platform === "darwin") {
+    const update = await autoUpdater.checkForUpdates()
+    const url = `${pack.repository.url}/releases/download/v${update.updateInfo.version}/${update.updateInfo.files[0].url}`
+    shell.openExternal(url)
+    app.quit()
+  } else {
+    await autoUpdater.downloadUpdate()
+    autoUpdater.quitAndInstall()
+  }
 })
 
 ipcMain.handle("check-for-updates", async (event, startup: boolean) => {
@@ -486,9 +497,11 @@ if (!singleLock) {
   })
 
   app.on("ready", () => {
-    window = new BrowserWindow({width: 800, height: 600, minWidth: 790, minHeight: 550, frame: false, backgroundColor: "#f97540", center: true, webPreferences: {nodeIntegration: true, contextIsolation: false, enableRemoteModule: true}})
+    window = new BrowserWindow({width: 800, height: 600, minWidth: 790, minHeight: 550, frame: false, backgroundColor: "#f97540", center: true, webPreferences: {nodeIntegration: true, contextIsolation: false}})
     window.loadFile(path.join(__dirname, "index.html"))
     window.removeMenu()
+    require("@electron/remote/main").enable(window.webContents)
+    if (ffmpegPath) fs.chmodSync(ffmpegPath, "777")
     window.on("close", () => {
       website?.close()
       for (let i = 0; i < active.length; i++) {
@@ -514,5 +527,3 @@ if (!singleLock) {
     })
   })
 }
-
-app.allowRendererProcessReuse = false

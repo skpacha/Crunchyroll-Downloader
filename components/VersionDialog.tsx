@@ -1,9 +1,10 @@
-import {ipcRenderer, remote} from "electron"
+import {ipcRenderer} from "electron"
+import {app} from "@electron/remote"
 import React, {useState, useEffect} from "react"
 import "../styles/versiondialog.less"
 
 const VersionDialog: React.FunctionComponent = (props) => {
-    let [version, setVersion] = useState(remote.app.getVersion())
+    let [version, setVersion] = useState(app.getVersion())
     let [newVersion, setNewVersion] = useState(false)
     let [visible, setVisible] = useState(false)
     

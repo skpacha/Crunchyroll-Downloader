@@ -94,7 +94,7 @@ const GroupAction: React.FunctionComponent = (props) => {
     if (clearAll) {
         return (
             <section className="group-action-container">
-                    <img src={getImage("clear")} onClick={clear} className="group-action-button" width="319" height="61" onMouseEnter={() => setClearHover(true)} onMouseLeave={() => setClearHover(false)}/>
+                    <img src={getImage("clear")} onClick={clear} className="group-action-button" width="436" height="61" onMouseEnter={() => setClearHover(true)} onMouseLeave={() => setClearHover(false)}/>
                     <img src={getImage("stop")} onClick={stop} className="group-action-button" width="319" height="61" onMouseEnter={() => setStopHover(true)} onMouseLeave={() => setStopHover(false)}/>
                     <img src={getImage("delete")} onClick={del} className="group-action-button" width="319" height="61" onMouseEnter={() => setDeleteHover(true)} onMouseLeave={() => setDeleteHover(false)}/>
             </section>

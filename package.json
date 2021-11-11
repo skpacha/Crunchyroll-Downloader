@@ -1,12 +1,13 @@
 {
   "name": "crunchyroll-downloader",
-  "version": "0.3.4",
+  "version": "0.3.5",
   "description": "A gui application that downloads anime episodes from crunchyroll",
   "main": "dist/main.js",
   "scripts": {
     "start": "npm run clean && webpack && cross-env DEVELOPMENT=true electron dist/main.js",
     "clean": "del-cli ./dist",
-    "release": "npm run clean ./build && webpack && electron-builder -p always"
+    "build": "npm run clean ./build && webpack && electron-builder -p never",
+    "release": "npm run clean ./build && webpack && electron-builder -mw -p always"
   },
   "keywords": [
     "crunchyroll",
@@ -27,8 +28,33 @@
       "buildResources": "assets",
       "output": "build"
     },
+    "buildDependenciesFromSource": true,
+    "mac": {
+      "target": {
+        "target": "dmg",
+        "arch": "x64"
+      },
+      "category": "public.app-category.utilities",
+      "extraFiles": [
+        "ffmpeg/ffmpeg.app"
+      ]
+    },
+    "dmg": {
+      "title": "${productName}",
+      "background": "./assets/background.png",
+      "window": {
+        "width": 540,
+        "height": 380
+      }
+    },
     "win": {
-      "target": "nsis"
+      "target": {
+        "target": "nsis",
+        "arch": "x64"
+      },
+      "extraFiles": [
+        "ffmpeg/ffmpeg.exe"
+      ]
     },
     "nsis": {
       "oneClick": false,
@@ -42,9 +68,6 @@
     "files": [
       "dist/**/*",
       "package.json"
-    ],
-    "extraFiles": [
-      "ffmpeg/**/*"
     ],
     "publish": {
       "provider": "github",
@@ -62,8 +85,8 @@
     "cross-env": "^7.0.3",
     "css-loader": "^5.0.1",
     "del-cli": "^3.0.1",
-    "electron": "^11.2.1",
-    "electron-builder": "^22.9.1",
+    "electron": "^14.0.0",
+    "electron-builder": "^22.13.1",
     "file-loader": "^6.2.0",
     "fork-ts-checker-webpack-plugin": "^6.1.0",
     "html-loader": "^1.3.2",
@@ -79,16 +102,19 @@
     "webpack-cli": "^4.4.0"
   },
   "dependencies": {
+    "@electron/remote": "^2.0.1",
     "axios": "^0.21.1",
     "bootstrap": "^4.6.0",
-    "crunchyroll.ts": "^0.3.3",
+    "crunchyroll.ts": "^0.3.4",
     "electron-store": "^7.0.1",
     "electron-updater": "^4.3.5",
-    "ntsuspend": "^1.0.1",
     "react": "^17.0.1",
     "react-bootstrap": "^1.4.3",
     "react-dom": "^17.0.1",
     "react-reorder": "^3.0.0-alpha.7",
     "shade-blend-color": "^1.0.0"
+  },
+  "optionalDependencies": {
+    "ntsuspend": "^1.0.1"
   }
 }

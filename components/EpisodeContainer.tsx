@@ -1,5 +1,6 @@
 import {CrunchyrollEpisode, FFmpegProgress} from "crunchyroll.ts"
-import {ipcRenderer, remote} from "electron"
+import {ipcRenderer} from "electron"
+import {shell} from "@electron/remote"
 import functions from "../structures/functions"
 import React, {useState, useEffect, useRef, useReducer} from "react"
 import mp4Label from "../assets/mp4Label.png"
@@ -261,7 +262,7 @@ const EpisodeContainer: React.FunctionComponent<EpisodeContainerProps> = (props:
     }
 
     const videoButton = () => {
-        if (output) remote.shell.openExternal(output)
+        if (output) shell.openPath(output)
     }
 
     const openAnime = async (url: string) => {
