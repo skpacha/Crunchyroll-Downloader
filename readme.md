@@ -29,7 +29,7 @@ You can specify a custom output path. The default is `{seasonTitle} {episodeNumb
 
 ### Installation
 
-Download the latest exe installer from the [releases](https://github.com/Tenpi/Crunchyroll-Downloader/releases) tab. You may get a warning message along the lines of "running this app can harm your PC", but don't worry because it's safe. Updates are able to be installed automatically.
+Download the latest installer from the [releases](https://github.com/Tenpi/Crunchyroll-Downloader/releases) tab.
 
 ### Bugs and Requests
 
