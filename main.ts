@@ -160,7 +160,7 @@ ipcMain.handle("install-update", async (event) => {
   if (process.platform === "darwin") {
     const update = await autoUpdater.checkForUpdates()
     const url = `${pack.repository.url}/releases/download/v${update.updateInfo.version}/${update.updateInfo.files[0].url}`
-    shell.openExternal(url)
+    await shell.openExternal(url)
     app.quit()
   } else {
     await autoUpdater.downloadUpdate()
@@ -502,7 +502,7 @@ if (!singleLock) {
     window.loadFile(path.join(__dirname, "index.html"))
     window.removeMenu()
     require("@electron/remote/main").enable(window.webContents)
-    if (ffmpegPath) fs.chmodSync(ffmpegPath, "777")
+    if (ffmpegPath && process.platform !== "win32") fs.chmodSync(ffmpegPath, "777")
     window.on("close", () => {
       website?.close()
       for (let i = 0; i < active.length; i++) {
