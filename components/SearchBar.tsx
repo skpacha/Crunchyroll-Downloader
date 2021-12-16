@@ -10,7 +10,7 @@ import searchButtonHover from "../assets/searchButton-hover.png"
 import "../styles/searchbar.less"
 import {CrunchyrollEpisode} from "crunchyroll.ts"
 import functions from "../structures/functions"
-import {TypeContext, QualityContext, FormatContext, LanguageContext, TemplateContext, VideoQualityContext} from "../renderer"
+import {TypeContext, QualityContext, FormatContext, LanguageContext, TemplateContext, VideoQualityContext, EnglishDialectContext, SpanishDialectContext, PortugeuseDialectContext} from "../renderer"
 
 const SearchBar: React.FunctionComponent = (props) => {
     const {template} = useContext(TemplateContext)
@@ -19,6 +19,9 @@ const SearchBar: React.FunctionComponent = (props) => {
     const {language, setLanguage} = useContext(LanguageContext)
     const {format, setFormat} = useContext(FormatContext)
     const {quality, setQuality} = useContext(QualityContext)
+    const {englishDialect} = useContext(EnglishDialectContext)
+    const {spanishDialect} = useContext(SpanishDialectContext)
+    const {portugeuseDialect} = useContext(PortugeuseDialectContext)
     const [id, setID] = useState(1)
     const [directory, setDirectory] = useState("")
     const [folderHover, setFolderHover] = useState(false)
@@ -132,7 +135,8 @@ const SearchBar: React.FunctionComponent = (props) => {
         }
         const hls = vilos?.streams.filter((s: any) => s.format === "adaptive_hls" || s.format === "trailer_hls")
         let audioLang = type === "sub" ? "jaJP" : language
-        let subLang = type === "dub" || noSub ? null : language
+        let dialect = functions.getDialect(language, englishDialect, spanishDialect, portugeuseDialect)
+        let subLang = type === "dub" || noSub ? null : dialect
         let stream = hls?.find((s: any) => s.audio_lang === audioLang && s.hardsub_lang === subLang)
         if (!stream && language === "esLA") stream = hls?.find((s: any) => s.audio_lang === "esES" && s.hardsub_lang === subLang)
         if (!stream && language === "ptBR") stream = hls?.find((s: any) => s.audio_lang === "ptPT" && s.hardsub_lang === subLang)
@@ -159,7 +163,8 @@ const SearchBar: React.FunctionComponent = (props) => {
         const vilos = await fetch(playback, {headers: {cookie}}).then((r) => r.json())
         let audioLang = type === "sub" ? "ja-JP" : functions.dashLocale(language)
         if (vilos.audio_locale !== audioLang) return null
-        let subLang = type === "dub" || noSub ? "" : functions.dashLocale(language)
+        let dialect = functions.getDialect(language, englishDialect, spanishDialect, portugeuseDialect)
+        let subLang = type === "dub" || noSub ? "" : functions.dashLocale(dialect)
         let stream = vilos.streams.adaptive_hls[subLang].url
         if (!stream && language === "esLA") stream = vilos.streams.adaptive_hls["es-ES"].url
         if (!stream && language === "ptBR") stream = vilos.streams.adaptive_hls["pt-PT"].url
@@ -177,7 +182,8 @@ const SearchBar: React.FunctionComponent = (props) => {
         } catch {
             return parseSubtitlesBeta(info, error, noDL)
         }
-        let subtitles = vilos?.subtitles.filter((s: any) => s.language === language)
+        let dialect = functions.getDialect(language, englishDialect, spanishDialect, portugeuseDialect)
+        let subtitles = vilos?.subtitles.filter((s: any) => s.language === dialect)
         if (!subtitles && language === "esLA") subtitles = vilos?.subtitles.filter((s: any) => s.language === "esES")
         if (!subtitles && language === "ptBR") subtitles = vilos?.subtitles.filter((s: any) => s.language === "ptPT")
         if (!subtitles?.[0]) return error ? ipcRenderer.invoke("download-error", "search") : null

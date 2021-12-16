@@ -1,6 +1,7 @@
 import {ipcRenderer} from "electron"
 import React, {useContext, useEffect, useState} from "react"
-import {TemplateContext, VideoQualityContext, TypeContext, LanguageContext, QualityContext, FormatContext, QueueContext} from "../renderer"
+import {Dropdown, DropdownButton} from "react-bootstrap"
+import {TemplateContext, VideoQualityContext, TypeContext, LanguageContext, QualityContext, FormatContext, QueueContext, EnglishDialectContext, SpanishDialectContext, PortugeuseDialectContext} from "../renderer"
 import "../styles/advancedsettings.less"
 
 const AdvancedSettings: React.FunctionComponent = (props) => {
@@ -12,6 +13,9 @@ const AdvancedSettings: React.FunctionComponent = (props) => {
     const {format, setFormat} = useContext(FormatContext)
     const {quality, setQuality} = useContext(QualityContext)
     const {queue, setQueue} = useContext(QueueContext)
+    const {englishDialect, setEnglishDialect} = useContext(EnglishDialectContext)
+    const {spanishDialect, setSpanishDialect} = useContext(SpanishDialectContext)
+    const {portugeuseDialect, setPortugeuseDialect} = useContext(PortugeuseDialectContext)
     const [cookieDeleted, setCookieDeleted] = useState(false)
 
     useEffect(() => {
@@ -35,10 +39,13 @@ const AdvancedSettings: React.FunctionComponent = (props) => {
         if (settings.videoQuality) setVideoQuality(settings.videoQuality)
         if (settings.template) setTemplate(settings.template)
         if (settings.queue) setQueue(settings.queue)
+        if (settings.englishDialect) setEnglishDialect(settings.englishDialect)
+        if (settings.spanishDialect) setSpanishDialect(settings.spanishDialect)
+        if (settings.portugeuseDialect) setPortugeuseDialect(settings.portugeuseDialect)
     }
 
     useEffect(() => {
-        ipcRenderer.invoke("store-settings", {template, videoQuality, queue})
+        ipcRenderer.invoke("store-settings", {template, videoQuality, queue, englishDialect, spanishDialect, portugeuseDialect})
     })
 
     const ok = () => {
@@ -53,6 +60,9 @@ const AdvancedSettings: React.FunctionComponent = (props) => {
         setFormat("mp4")
         setQuality("1080")
         setQueue(12)
+        setEnglishDialect("US")
+        setSpanishDialect("LA")
+        setPortugeuseDialect("BR")
     }
 
     const changeTemplate = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -136,6 +146,27 @@ const AdvancedSettings: React.FunctionComponent = (props) => {
                             <div className="settings-row">
                                 <p className="settings-text">Concurrent Downloads: </p>
                                 <input className="settings-input" type="text" spellCheck="false" value={queue} onChange={changeQueue} onKeyDown={changeQueueKey}/>
+                            </div>
+                            <div className="settings-row">
+                                <p className="settings-text">English Dialect: </p>
+                                <DropdownButton className="small-drop" title={englishDialect} drop="down">
+                                    <Dropdown.Item className="small-drop" active={englishDialect === "US"} onClick={() => setEnglishDialect("US")}>US</Dropdown.Item>
+                                    <Dropdown.Item className="small-drop" active={englishDialect === "UK"} onClick={() => setEnglishDialect("UK")}>UK</Dropdown.Item>
+                                </DropdownButton>
+                            </div>
+                            <div className="settings-row">
+                                <p className="settings-text">Spanish Dialect: </p>
+                                <DropdownButton className="small-drop" title={spanishDialect} drop="down">
+                                    <Dropdown.Item className="small-drop" active={spanishDialect === "LA"} onClick={() => setSpanishDialect("LA")}>LA</Dropdown.Item>
+                                    <Dropdown.Item className="small-drop" active={spanishDialect === "ES"} onClick={() => setSpanishDialect("ES")}>ES</Dropdown.Item>
+                                </DropdownButton>
+                            </div>
+                            <div className="settings-row">
+                                <p className="settings-text">Portugeuse Dialect: </p>
+                                <DropdownButton className="small-drop" title={portugeuseDialect} drop="down">
+                                    <Dropdown.Item className="small-drop" active={portugeuseDialect === "BR"} onClick={() => setPortugeuseDialect("BR")}>BR</Dropdown.Item>
+                                    <Dropdown.Item className="small-drop" active={portugeuseDialect === "PT"} onClick={() => setPortugeuseDialect("PT")}>PT</Dropdown.Item>
+                                </DropdownButton>
                             </div>
                             <div className="settings-row">
                                 <button onClick={deleteCookie} className="cookie-button">Delete Cookies</button>

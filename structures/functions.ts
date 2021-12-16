@@ -122,4 +122,12 @@ export default class functions {
     public static skipWall = (url: string) => {
         return url.includes("?") ? `${url}&skip_wall=1` : `${url}?skip_wall=1`
     }
+
+    public static getDialect = (language: string, englishDialect: string, spanishDialect: string, portugeuseDialect: string) => {
+        let dialect = language
+        if (language === "enUS") if (englishDialect === "UK") dialect = "esGB"
+        if (language === "esLA") if (spanishDialect === "ES") dialect = "esES"
+        if (language === "ptBR") if (portugeuseDialect === "PT") dialect = "ptPT"
+        return dialect
+    }
 }
