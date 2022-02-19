@@ -19,7 +19,7 @@ This is a GUI application that lets you download anime episodes from Crunchyroll
 ### Searching
 The application attempts to search for the provided anime, so to download Konosuba for example you can simply type "konosuba". This downloads all episodes, to download a specific episode append a number, ex. "konosuba 1" only downloads the first episode. To download episodes 2-4, you can type "konosuba 2-4". 
 
-This doesn't work for every anime, so for the highest accuracy you can provide a direct link. Links to the a specific episode and links to the page of the anime are supported. If you provide a link to the anime page, you can also append a number to download a specific episode range.
+This doesn't work for every anime, so for the highest accuracy you can provide a direct link. Links to a specific episode and links to the page of the anime are supported. If you provide a link to the anime page, you can also append a number to download a specific episode range.
 
 ### Output Template
 
