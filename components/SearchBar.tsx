@@ -98,7 +98,7 @@ const SearchBar: React.FunctionComponent = (props) => {
         const streamsUrl = await ipcRenderer.invoke("get-streams")
         const streamsJSON = await fetch(streamsUrl, {headers: {cookie}}).then((r) => r.json()).catch(() => null)
         const episode = {...meta, episode_number: meta.episode_metadata.episode_number, duration: meta.episode_metadata.duration_ms, url,
-        name: meta.title, series_name: meta.episode_metadata.series_title, collection_name: meta.episode_metadata.season_title, screenshot_image: {large_url: meta.images.thumbnail[0][0].source}, bif_url: streamsJSON?.bifs[0]}
+        name: meta.title, series_name: meta.episode_metadata.series_title, collection_name: meta.episode_metadata.season_title, screenshot_image: {large_url: meta.images.thumbnail?.[0]?.[0].source}, bif_url: streamsJSON?.bifs?.[0]}
         return episode
     }
 
@@ -158,7 +158,7 @@ const SearchBar: React.FunctionComponent = (props) => {
         if (!playback) {
             const objectUrl = await ipcRenderer.invoke("get-object")
             json = await fetch(objectUrl, {headers: {cookie}}).then((r) => r.json())
-            playback = json.items[0].playback
+            playback = json.items?.[0].playback
         }
         const vilos = await fetch(playback, {headers: {cookie}}).then((r) => r.json())
         let audioLang = type === "sub" ? "ja-JP" : functions.dashLocale(language)
@@ -188,7 +188,7 @@ const SearchBar: React.FunctionComponent = (props) => {
         if (!subtitles && language === "ptBR") subtitles = vilos?.subtitles.filter((s: any) => s.language === "ptPT")
         if (!subtitles?.[0]) return error ? ipcRenderer.invoke("download-error", "search") : null
         if (!noDL) ipcRenderer.invoke("download-subtitles", {url: subtitles[0].url, dest: info.dest, id: info.id, episode: info.episode, kind: info.kind, template, language})
-        return subtitles[0].url
+        return subtitles?.[0].url
     }
 
     const parseSubtitlesBeta = async (info: {id: number, episode: CrunchyrollEpisode, dest: string, kind: string}, error?: boolean, noDL?: boolean) => {
