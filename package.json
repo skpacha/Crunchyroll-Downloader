@@ -1,6 +1,6 @@
 {
   "name": "crunchyroll-downloader",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "description": "A gui application that downloads anime episodes from crunchyroll",
   "main": "dist/main.js",
   "scripts": {
@@ -125,6 +125,6 @@
     "shade-blend-color": "^1.0.0"
   },
   "optionalDependencies": {
-    "ntsuspend": "^1.0.1"
+    "ntsuspend": "^1.0.2"
   }
 }

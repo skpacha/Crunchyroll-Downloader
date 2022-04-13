@@ -18,7 +18,7 @@ let ffmpegPath = undefined as any
 if (process.platform === "darwin") ffmpegPath = path.join(app.getAppPath(), "../../ffmpeg/ffmpeg.app")
 if (process.platform === "win32") ffmpegPath = path.join(app.getAppPath(), "../../ffmpeg/ffmpeg.exe")
 if (process.platform === "linux") ffmpegPath = path.join(app.getAppPath(), "../../ffmpeg/ffmpeg")
-if (!fs.existsSync(ffmpegPath)) ffmpegPath = process.platform === "darwin" ? "/opt/homebrew/Cellar/ffmpeg/4.4.1_3/bin/ffmpeg" : undefined
+if (!fs.existsSync(ffmpegPath)) ffmpegPath = process.platform === "darwin" ? "/opt/homebrew/Cellar/ffmpeg/5.0.1/bin/ffmpeg" : undefined
 autoUpdater.autoDownload = false
 const store = new Store()
 
@@ -502,7 +502,7 @@ if (!singleLock) {
     window.loadFile(path.join(__dirname, "index.html"))
     window.removeMenu()
     require("@electron/remote/main").enable(window.webContents)
-    if (ffmpegPath && process.platform !== "win32") fs.chmodSync(ffmpegPath, "777")
+    if (ffmpegPath && process.platform !== "win32" && process.env.DEVELOPMENT !== "true") fs.chmodSync(ffmpegPath, "777")
     window.on("close", () => {
       website?.close()
       for (let i = 0; i < active.length; i++) {
