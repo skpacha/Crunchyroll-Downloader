@@ -69,7 +69,6 @@ const SearchBar: React.FunctionComponent = (props) => {
     const parseEpisode = async (url: string) => {
         const cookie = await ipcRenderer.invoke("get-cookie")
         if (url.endsWith("/")) url = url.slice(0, -1)
-        console.log(url)
         const html = await fetch(functions.skipWall(url), {headers: {cookie}}).then((r) => r.text())
         let vilos = null
         try {
@@ -79,11 +78,8 @@ const SearchBar: React.FunctionComponent = (props) => {
         }
         let seasonTitle = functions.epRegex(html)
         const seriesTitle = html.match(/(?<=type="application\/rss\+xml" title=")(.*?)(?= Episodes)/)?.[0]
-        console.log(seasonTitle)
-        console.log(seriesTitle)
         if (!seasonTitle) seasonTitle = seriesTitle
         const episode = {...vilos.metadata, url, name: vilos.metadata.title, series_name: seriesTitle, collection_name: seasonTitle, screenshot_image: {large_url: vilos.thumbnail.url}, bif_url: vilos.preview.src}
-        console.log(episode)
         return episode
     }
 
@@ -237,7 +233,6 @@ const SearchBar: React.FunctionComponent = (props) => {
         if (format === "ass") opts.subtitles = true
         if (format === "mkv") opts.softSubs = true
         opts.kind = getKind()
-        // searchText = functions.stripLocale(searchText)
         let episode = await ipcRenderer.invoke("get-episode", searchText, opts)
         if (/beta/.test(searchText)) episode = await parseEpisodeBeta(searchText)
         if (!episode) {
