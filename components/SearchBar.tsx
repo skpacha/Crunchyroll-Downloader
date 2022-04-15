@@ -135,6 +135,7 @@ const SearchBar: React.FunctionComponent = (props) => {
         }
         const hls = vilos?.streams.filter((s: any) => s.format === "adaptive_hls" || s.format === "trailer_hls")
         let audioLang = type === "sub" ? "jaJP" : language
+        if (audioLang === "all") audioLang = "jaJP"
         let dialect = functions.getDialect(language, englishDialect, spanishDialect, portugeuseDialect)
         let subLang = type === "dub" || noSub ? null : dialect
         let stream = hls?.find((s: any) => s.audio_lang === audioLang && s.hardsub_lang === subLang)
@@ -162,6 +163,7 @@ const SearchBar: React.FunctionComponent = (props) => {
         }
         const vilos = await fetch(playback, {headers: {cookie}}).then((r) => r.json())
         let audioLang = type === "sub" ? "ja-JP" : functions.dashLocale(language)
+        if (audioLang === "all") audioLang = "ja-JP"
         if (vilos.audio_locale !== audioLang) return null
         let dialect = functions.getDialect(language, englishDialect, spanishDialect, portugeuseDialect)
         let subLang = type === "dub" || noSub ? "" : functions.dashLocale(dialect)
@@ -183,12 +185,12 @@ const SearchBar: React.FunctionComponent = (props) => {
             return parseSubtitlesBeta(info, error, noDL)
         }
         let dialect = functions.getDialect(language, englishDialect, spanishDialect, portugeuseDialect)
-        let subtitles = vilos?.subtitles.filter((s: any) => s.language === dialect)
+        let subtitles = language === "all" ? vilos?.subtitles : vilos?.subtitles.filter((s: any) => s.language === dialect)
         if (!subtitles && language === "esLA") subtitles = vilos?.subtitles.filter((s: any) => s.language === "esES")
         if (!subtitles && language === "ptBR") subtitles = vilos?.subtitles.filter((s: any) => s.language === "ptPT")
         if (!subtitles?.[0]) return error ? ipcRenderer.invoke("download-error", "search") : null
         if (!noDL) ipcRenderer.invoke("download-subtitles", {url: subtitles[0].url, dest: info.dest, id: info.id, episode: info.episode, kind: info.kind, template, language})
-        return subtitles?.[0].url
+        return language === "all" ? {subtitles: subtitles?.map((s: any) => s.url), subtitleNames: subtitles?.map((s: any) => functions.parseLocale(s.language))} : {subtitles: [subtitles?.[0].url], subtitleNames: [functions.parseLocale(subtitles?.[0].language)]}
     }
 
     const parseSubtitlesBeta = async (info: {id: number, episode: CrunchyrollEpisode, dest: string, kind: string}, error?: boolean, noDL?: boolean) => {
@@ -203,10 +205,20 @@ const SearchBar: React.FunctionComponent = (props) => {
         }
         const vilos = await fetch(json.content.byId[id].playback, {headers: {cookie}}).then((r) => r.json())
         let subLang = functions.dashLocale(language)
-        const subtitles = vilos.subtitles[subLang].url
+        let subtitles = [] as string[]
+        let subtitleNames = [] as string[]
+        for (const [key, value] of Object.entries(vilos.subtitles)) {
+            if (subLang === "all") {
+                subtitleNames.push(functions.dashLocale(key))
+                subtitles.push((value as any).url)
+            } else if (key === subLang) {
+                subtitleNames.push(functions.dashLocale(key))
+                subtitles.push((value as any).url)
+            }
+        }
         if (!subtitles?.[0]) return error ? ipcRenderer.invoke("download-error", "search") : null
-        if (!noDL) ipcRenderer.invoke("download-subtitles", {url: subtitles, dest: info.dest, id: info.id, episode: info.episode, kind: info.kind, template, language})
-        return subtitles
+        if (!noDL) ipcRenderer.invoke("download-subtitles", {url: subtitles[0], dest: info.dest, id: info.id, episode: info.episode, kind: info.kind, template, language})
+        return {subtitles, subtitleNames}
     }
 
     const getKind = () => {
@@ -268,11 +280,11 @@ const SearchBar: React.FunctionComponent = (props) => {
                     const subtitles = /beta/.test(episodes[i].url) ? await parseSubtitlesBeta({id: current, episode: episodes[i], dest: directory.replace(/\\+/g, "/"), kind: opts.kind}) : await parseSubtitles({id: current, episode: episodes[i], dest: directory.replace(/\\+/g, "/"), kind: opts.kind})
                     if (subtitles) downloaded = true
                 } else if (opts.softSubs) {
-                    const subtitles = /beta/.test(episodes[i].url) ? await parseSubtitlesBeta({id: current, episode: episodes[i], dest: directory.replace(/\\+/g, "/"), kind: opts.kind}, false, true) : await parseSubtitles({id: current, episode: episodes[i], dest: directory.replace(/\\+/g, "/"), kind: opts.kind}, false, true)
+                    const {subtitles, subtitleNames} = /beta/.test(episodes[i].url) ? await parseSubtitlesBeta({id: current, episode: episodes[i], dest: directory.replace(/\\+/g, "/"), kind: opts.kind}, false, true) : await parseSubtitles({id: current, episode: episodes[i], dest: directory.replace(/\\+/g, "/"), kind: opts.kind}, false, true)
                     const playlist = /beta/.test(episodes[i].url) ? await parsePlaylistBeta(episodes[i].url, true) : await parsePlaylist(episodes[i].url, true)
                     if (!playlist || !subtitles) continue
                     downloaded = true
-                    ipcRenderer.invoke("download", {id: current, episode: episodes[i], dest: directory.replace(/\\+/g, "/"), playlist, subtitles, ...opts})
+                    ipcRenderer.invoke("download", {id: current, episode: episodes[i], dest: directory.replace(/\\+/g, "/"), playlist, subtitles, subtitleNames, ...opts})
                 } else {
                     const playlist = /beta/.test(episodes[i].url) ? await parsePlaylistBeta(episodes[i].url) : await parsePlaylist(episodes[i].url)
                     if (!playlist) continue
@@ -291,11 +303,11 @@ const SearchBar: React.FunctionComponent = (props) => {
                     return prev + 1
                 })
             } else if (opts.softSubs) {
-                    const subtitles = /beta/.test(episode.url) ? await parseSubtitlesBeta({id: 0, episode, dest: directory.replace(/\\+/g, "/"), kind: opts.kind}, false, true) : await parseSubtitles({id: 0, episode, dest: directory.replace(/\\+/g, "/"), kind: opts.kind}, false, true)
+                    const {subtitles, subtitleNames} = /beta/.test(episode.url) ? await parseSubtitlesBeta({id: 0, episode, dest: directory.replace(/\\+/g, "/"), kind: opts.kind}, false, true) : await parseSubtitles({id: 0, episode, dest: directory.replace(/\\+/g, "/"), kind: opts.kind}, false, true)
                     const playlist = /beta/.test(episode.url) ? await parsePlaylistBeta(episode.url, true) : await parsePlaylist(episode.url, true)
                     if (!playlist) return ipcRenderer.invoke("download-error", "search")
                     setID((prev) => {
-                        ipcRenderer.invoke("download", {id: prev, episode, dest: directory.replace(/\\+/g, "/"), playlist, subtitles, ...opts})
+                        ipcRenderer.invoke("download", {id: prev, episode, dest: directory.replace(/\\+/g, "/"), playlist, subtitles, subtitleNames, ...opts})
                         return prev + 1
                     })
             } else {
@@ -312,6 +324,12 @@ const SearchBar: React.FunctionComponent = (props) => {
     const enterSearch = (event: React.KeyboardEvent<HTMLElement>) => {
         if (event.key === "Enter") search()
     }
+
+    useEffect(() => {
+        if (language === "all") {
+            if (format !== "mkv") setLanguage("enUS")
+        }
+    }, [type, language, format])
 
     return (
         <section className="search-container">
@@ -333,12 +351,13 @@ const SearchBar: React.FunctionComponent = (props) => {
                     <p className="dropdown-label">Type: </p>
                     <DropdownButton title={type} drop="down">
                         <Dropdown.Item active={type === "sub"} onClick={() => {setType("sub"); if (language === "jaJP") setLanguage("enUS")}}>sub</Dropdown.Item>
-                        <Dropdown.Item active={type === "dub"} onClick={() => {setType("dub"); if (format === "ass") setFormat("mp4")}}>dub</Dropdown.Item>
+                        <Dropdown.Item active={type === "dub"} onClick={() => {setType("dub"); if (format === "ass") setFormat("mp4"); if (language === "all") setLanguage("enUS")}}>dub</Dropdown.Item>
                     </DropdownButton>
                 </div>
                 <div className="dropdown-container">
                     <p className="dropdown-label">Language: </p>
                     <DropdownButton title={functions.parseLocale(language)} drop="down">
+                        {type === "sub" && format === "mkv" ? <Dropdown.Item active={language === "all"} onClick={() => setLanguage("all")}>All</Dropdown.Item> : null}
                         {type === "dub" ? <Dropdown.Item active={language === "jaJP"} onClick={() => setLanguage("jaJP")}>Japanese</Dropdown.Item> : null}
                         <Dropdown.Item active={language === "enUS"} onClick={() => setLanguage("enUS")}>English</Dropdown.Item>
                         <Dropdown.Item active={language === "esLA"} onClick={() => setLanguage("esLA")}>Spanish</Dropdown.Item>

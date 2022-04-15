@@ -60,6 +60,7 @@ export default class functions {
     }
 
     public static parseLocale = (locale: string) => {
+        if (locale === "all") return "All"
         if (locale === "jaJP") return "Japanese"
         if (locale === "enUS") return "English"
         if (locale === "enGB") return "English"
@@ -85,6 +86,18 @@ export default class functions {
     }
 
     public static dashLocale = (locale: string) => {
+        if (locale === "ja-JP") return "Japanese"
+        if (locale === "en-US") return "English"
+        if (locale === "en-GB") return "English"
+        if (locale === "es-ES") return "Spanish"
+        if (locale === "es-LA") return "Spanish"
+        if (locale === "fr-FR") return "French"
+        if (locale === "de-DE") return "German"
+        if (locale === "it-IT") return "Italian"
+        if (locale === "ru-RU") return "Russian"
+        if (locale === "pt-BR") return "Portuguese"
+        if (locale === "pt-PT") return "Portuguese"
+        if (locale === "ar-ME") return "Arabic"
         if (locale === "jaJP") return "ja-JP"
         if (locale === "enUS") return "en-US"
         if (locale === "enGB") return "en-GB"
@@ -97,6 +110,7 @@ export default class functions {
         if (locale === "ptBR") return "pt-BR"
         if (locale === "ptPT") return "pt-PT"
         if (locale === "arME") return "ar-ME"
+        if (locale === "all") return "all"
         return "None"
     }
 
@@ -128,6 +142,7 @@ export default class functions {
         if (language === "enUS") if (englishDialect === "UK") dialect = "esGB"
         if (language === "esLA") if (spanishDialect === "ES") dialect = "esES"
         if (language === "ptBR") if (portugeuseDialect === "PT") dialect = "ptPT"
+        if (dialect === "all") dialect = "enUS"
         return dialect
     }
 }
